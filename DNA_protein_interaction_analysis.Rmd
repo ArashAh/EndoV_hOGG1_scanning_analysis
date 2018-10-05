@@ -1,12 +1,12 @@
 ---
-title: "Breaking the speed limit: multimode fast scanning of DNA by Endonuclease V"
+title: "Breaking the speed limit: multimode fast scanning of DNA by Endonuclease V (Supplementary info)"
 author: "Arash and Alex"
 date: "20 July 2018"
 output:
-  html_document:
+  pdf_document:
     number_sections: yes
     toc: yes
-  pdf_document:
+  html_document:
     number_sections: yes
     toc: yes
 ---
@@ -130,13 +130,13 @@ library(viridis)
 library(broom)
 library(plotly)
 library(e1071)
-library(randomForest)
-library(h2o)
-library(party)
+#library(randomForest)
+#library(h2o)
+#library(party)
 library(data.table)
 library(microbenchmark)
 library(dplyr)
-library(DT)
+#library(DT)
 library(shiny)
 library(stringr)
 library(scales)
@@ -148,6 +148,9 @@ library(ggplot2)
 library(jsonlite)
 library(caret)
 library(R.matlab)
+library(svglite)
+library(markovchain)
+library(igraph)
 ```
 
 
@@ -1810,7 +1813,7 @@ localMSDs %>%
 
 Before doing further analysis we want to simulate a random walk and analyse along with the proteins; this can help us understand the deviations from the normal distributions and consequently the mechanism of scanning better.      
 
-The average diffusion rate for hOgg1, EndoV and mutant EndoV is calculated as $0.13 \mu m^2/s$, $0.65 \mu m^2/s$ and $0.70 \mu m^2/s$ with time interval of   $23.5ms$, $7.5ms$ and $7.5ms$ repectively. Now wit these information we can simulate pure random walks with average diffusion rate of equal to that of corresponding proteins.  
+The average diffusion rate for hOgg1, EndoV and mutant EndoV is calculated as $0.13 \mu m^2/s$, $0.65 \mu m^2/s$ and $0.70 \mu m^2/s$ with time interval of   $23.5ms$, $7.5ms$ and $7.5ms$ repectively. Now with these information we can simulate different pure random walks with average diffusion rate of equal to that of corresponding proteins.  
 
 
 ```{r Simulation of pure random walk, message= FALSE, warning= FALSE, error= FALSE, fig.align= "center"}
@@ -2017,7 +2020,7 @@ In the first step we need to transform the data to a version that is needed for 
 ```{r tomarkov, eval=FALSE, message= FALSE, warning= FALSE, error= FALSE}
 ## hOgg1
 
-localMSDs <- readRDS("Processed2/localMSD_real_data.rds")
+localMSDs <- readRDS("Processed/localMSD_real_data.rds")
 
 traj.id <- localMSDs %>%
   filter(Enzyme=="hOgg1", `Delta_X > 300` =="Yes") %>%
@@ -2535,6 +2538,19 @@ segmented.localMSDs %>%
 
 
 
+
+
+
+
+
+```
+
+In the next step we want to check the consistancy and overlap of the modes from these two classification models. This is done first with comparison of state occupancies and diffusion rate of the two models and then by looking into the confusion matrix. We used a moving window with the width of 5 steps to calculate the instantaneous diffusion rate and due the nature of this method the last for steps of trajectories are not attributed with any value for instantaneous diffusion rate; consequently they cannot be classified into any of the energy barrier modes. In the vbSPT analysis the full length of trajectories are classified hence diffusion rate and occupancy reported by the software include those last four steps of the trajectories are well. For comparison of the results of the two classification models we need to make sure that the exact sets of steps are used. Therefore we excluded the last four steps of the trajectories after the Markov model classification was performed and then recalculate the diffusion rate of states by averaging over the instantaneous diffusion rate of the steps within the states. Occupancy of states was recalculated as proportion of time spent in each state.  
+
+
+```{r mothodsOverlap , message= FALSE, warning= FALSE, error= FALSE, out.width= '80%', fig.align= "center"}
+
+
 markov.result <- segmented.localMSDs %>% 
   filter(localMSD_05!=0, !is.na(Markov.state)) %>% 
   group_by(Enzyme, Markov.state) %>% 
@@ -2556,17 +2572,6 @@ markov.result <- segmented.localMSDs %>%
   select(-upper.limit)
 
 
-
-
-
-
-```
-
-In the next step we want to check the consistancy and overlap of the modes from these two classification models. This is done first with comparison of state occupancies and diffusion rate of the two models and then by looking into the confusion matrix. 
-
-
-```{r mothodsOverlap , message= FALSE, warning= FALSE, error= FALSE, out.width= '80%', fig.align= "center"}
-
 energy.result <- segmented.localMSDs %>% 
   filter(localMSD_05!=0, !is.na(Markov.state)) %>% 
   group_by(Enzyme, energy.barrier) %>% 
@@ -2580,7 +2585,7 @@ energy.result <- segmented.localMSDs %>%
 
 diffusion.occupancy <- bind_rows( energy.result, markov.result)
 
-saveRDS(diffusion.occupancy, "Processed/diffusion_occupancy.rds")
+#saveRDS(diffusion.occupancy, "Processed/diffusion_occupancy.rds")
 
 diffusion.occupancy$energy.barrier <- 
   factor(diffusion.occupancy$energy.barrier,
@@ -2614,11 +2619,18 @@ diffusion.occupancy %>% ggplot() +
 localMSDs3 <- segmented.localMSDs %>% filter(localMSD_05!=0, 
                                              !is.na(Markov.state)) 
 
-localMSDs3$energy.barrier[localMSDs3$energy.barrier == "Ea < 0.5KbT"]= "3"  
-localMSDs3$energy.barrier[localMSDs3$energy.barrier == "0.5KbT < Ea < 2KbT"]= "2"  
-localMSDs3$energy.barrier[localMSDs3$energy.barrier == "Ea > 2KbT"]= "1"  
+library(plyr)
 
-confusionMatrix(localMSDs3$energy.barrier, localMSDs3$Markov.state)
+localMSDs3$energy.barrier <-  
+  revalue(localMSDs3$energy.barrier, c("Ea < 0.5KbT" = "3",
+                                       "0.5KbT < Ea < 2KbT"= "2", 
+                                        "Ea > 2KbT"= "1"))
+
+detach("package:plyr", unload=TRUE)
+
+
+confusionMatrix(as.factor(localMSDs3$energy.barrier), 
+                as.factor(localMSDs3$Markov.state))
 
 rbind(prop.table(table(localMSDs3$energy.barrier)) %>% 
         data.frame() %>% 
@@ -2637,7 +2649,613 @@ mutate(classification.method= "Markov model")) %>%
 
 ```
 
+At mentioned the recalculation of diffusion rate and occupancy of Markov states was done merely to make sure we compare exact sets of trajectories steps, however here we show that the outcome values of diffusivity and occupancy reported by Markov model are very close the recalculated values. 
 
+```{r originalMarkovOutputs , message= FALSE, warning= FALSE, error= FALSE, out.width= '80%', fig.align= "center"}
+
+#####data from Markov #####
+
+diffusion.rate <- c(1.65e+05, 1.64e+06)/1e+6
+occupancy <- c(0.384, 0.616)
+state <- c(1,2)
+
+EndoV2 <- data.frame(diffusion.rate,occupancy,state) %>% 
+  mutate(num.of.states = 2)
+
+##    
+diffusion.rate <- c(1.15e+05, 5.28e+05, 1.95e+06)/1e+6
+occupancy <- c(0.256, 0.284, 0.46)
+state <- c(1,2,3)
+
+EndoV3 <- data.frame(diffusion.rate,occupancy,state) %>% 
+  mutate( num.of.states= 3)
+
+##
+diffusion.rate <- c(9.77e+04, 3.74e+05, 1.19e+06, 2.74e+06)/1e+6
+occupancy <- c(0.218, 0.202, 0.394, 0.186)
+state <- c(1,2,3,4)
+
+EndoV4 <- data.frame(diffusion.rate,occupancy,state) %>% 
+  mutate(num.of.states = 4)  
+
+##
+diffusion.rate <- c(9.69e+04,  1.69e+05, 3.84e+05,  1.22e+06,  2.72e+06)/1e+6
+occupancy <- c(0.188, 0.0755, 0.178, 0.363, 0.196)
+state <- c(1,2,3,4,5)
+
+EndoV5 <- data.frame(diffusion.rate,occupancy, state) %>% 
+  mutate(num.of.states = 5) 
+
+EndoV <- bind_rows(EndoV2, EndoV3, EndoV4, EndoV5) %>% 
+  mutate(upper.limit = 1.3, Enzyme = "wt-EndoV") %>% 
+  mutate(energy.barrier =
+           ifelse(log(upper.limit/(diffusion.rate)) <= 0.5 , 
+                  "Ea < 0.5KbT", 
+                  ifelse(log(upper.limit/(diffusion.rate)) >0.5 &
+                           log(upper.limit/(diffusion.rate)) <= 2, 
+                         "0.5KbT < Ea < 2KbT", "Ea > 2KbT")))
+
+
+## mEndoV
+
+diffusion.rate <- c(1.88e+05, 1.6e+06)/1e+6
+occupancy <- c(0.346, 0.654)
+state <- c(1,2)
+
+mEndoV2 <- data.frame(diffusion.rate,occupancy, state) %>% 
+  mutate(num.of.states = 2)
+
+##    
+diffusion.rate <- c(1.28e+05,  6.61e+05, 2.05e+06)/1e+6
+occupancy <- c(0.224, 0.367, 0.409)
+state <- c(1,2,3)
+
+mEndoV3 <- data.frame(diffusion.rate,occupancy, state) %>% 
+  mutate(num.of.states = 3)
+
+##
+diffusion.rate <- c(9.9e+04, 3.93e+05,  1.11e+06,  2.78e+06)/1e+6
+occupancy <- c(0.17,  0.196, 0.447, 0.186)
+state <- c(1,2,3,4)
+
+mEndoV4 <- data.frame(diffusion.rate,occupancy, state) %>% 
+  mutate(num.of.states = 4)  
+
+##
+diffusion.rate <- c(9.28e+04, 3.27e+05, 8.8e+05, 1.88e+06, 3.74e+06)/1e+6
+occupancy <- c(0.149, 0.183, 0.312, 0.305, 0.0504)
+state <- c(1,2,3,4,5)
+
+mEndoV5 <- data.frame(diffusion.rate,occupancy, state) %>% 
+  mutate(num.of.states = 5) 
+
+mEndoV <- bind_rows(mEndoV2, mEndoV3, mEndoV4, mEndoV5) %>% 
+  mutate(upper.limit = 1.3, Enzyme = "wm-EndoV") %>% 
+  mutate(energy.barrier =
+           ifelse(log(upper.limit/(diffusion.rate)) <= 0.5 , 
+                  "Ea < 0.5KbT", 
+                  ifelse(log(upper.limit/(diffusion.rate)) >0.5 &
+                           log(upper.limit/(diffusion.rate)) <= 2, 
+                         "0.5KbT < Ea < 2KbT", "Ea > 2KbT")))
+
+## hOGG1 
+
+diffusion.rate <- c(4.87e+04, 6.96e+05)/1e+6
+occupancy <- c(0.616, 0.384)
+state <- c(1,2)
+
+hOGG2 <- data.frame(diffusion.rate,occupancy, state) %>% 
+  mutate(num.of.states = 2)
+
+##    
+diffusion.rate <- c( 3.78e+04, 2.85e+05, 1.73e+06)/1e+6
+occupancy <- c(0.496, 0.41, 0.0935)
+state <- c(1,2,3)
+hOGG3 <- data.frame(diffusion.rate,occupancy, state) %>% 
+  mutate(num.of.states = 3)
+
+##
+diffusion.rate <- c(3.2e+04,  1.45e+05,  7.11e+05,  4.73e+06)/1e+6
+occupancy <- c(0.405, 0.331,  0.251, 0.0121)
+state <- c(1,2,3,4)
+
+hOGG4 <- data.frame(diffusion.rate,occupancy, state) %>% 
+  mutate(num.of.states = 4)  
+
+##
+diffusion.rate <- c(2.83e+04, 1.03e+05, 3.06e+05, 1.04e+06, 5.14e+06)/1e+6
+occupancy <- c(0.349, 0.26, 0.254, 0.127, 0.00988)
+state <- c(1,2,3,4,5)
+
+hOGG5 <- data.frame(diffusion.rate,occupancy, state) %>% 
+  mutate(num.of.states = 5) 
+
+
+hOGG <- bind_rows(hOGG2, hOGG3, hOGG4, hOGG5) %>% 
+  mutate(upper.limit = 1.3, Enzyme = "hOGG1") %>% 
+  mutate(energy.barrier =
+           ifelse(log(upper.limit/(diffusion.rate)) <= 0.5 , 
+                  "Ea < 0.5KbT", 
+                  ifelse(log(upper.limit/(diffusion.rate)) >0.5 &
+                           log(upper.limit/(diffusion.rate)) <= 2, 
+                         "0.5KbT < Ea < 2KbT", "Ea > 2KbT")))
+
+markov.data = bind_rows(EndoV, mEndoV, hOGG)
+
+markov.data$energy.barrier <- 
+  factor(markov.data$energy.barrier,
+         levels = c('Ea > 2KbT',
+                    '0.5KbT < Ea < 2KbT',
+                    'Ea < 0.5KbT'))
+
+
+
+diffusion.occupancy <- readRDS("Processed/diffusion_occupancy.rds") 
+
+library(plyr)
+
+diffusion.occupancy$Enzyme <-  
+  revalue(diffusion.occupancy$Enzyme, c("hOgg1" = "hOGG1", "EndoV" = "wt-EndoV", 
+                                        "mEndoV" = "wm-EndoV"))
+
+diffusion.occupancy$Segmentation <-  
+  revalue(diffusion.occupancy$Segmentation,
+          c("Markov states" = "Recalculated values\n  for Markov States", 
+            "Energy Barrier" = "Values for Energy\n  Barrier states"))
+detach("package:plyr", unload=TRUE)
+
+combined.data <- bind_rows(diffusion.occupancy,
+               markov.data %>% 
+                 filter(num.of.states == 3) %>% 
+                 select(-num.of.states, - upper.limit) %>% 
+                 mutate(Segmentation = "Original values\n  for Markov States"))
+combined.data$energy.barrier <- 
+  factor(combined.data$energy.barrier,
+         levels = c('Ea > 2KbT',
+                    '0.5KbT < Ea < 2KbT',
+                    'Ea < 0.5KbT'))
+combined.data %<>% arrange( Segmentation,Enzyme,  energy.barrier)
+
+combined.data$Enzyme <-  factor(combined.data$Enzyme, 
+                                levels=c('hOGG1','wt-EndoV',
+                                       'wm-EndoV'))
+
+theme_white4 <- theme(panel.background = element_blank(),
+                      legend.key = element_blank(),
+                      legend.background = element_blank(),
+                      strip.background = element_blank(),
+                      plot.background = element_blank(),
+                      panel.grid.major = element_line(color = "gray"),
+                      axis.line = element_line(color = "black"),
+                      axis.ticks.y = element_line(color = "black"),
+                      axis.ticks.x = element_blank(),
+                      strip.text = element_text (size=6, color= "black"),
+                      axis.title.y = element_text(size = 6,
+                                                  color = "black"),
+                      axis.title.x = element_text(size = 6,
+                                                  color = "black"),
+                      axis.text.x = element_text (size=6, color= "black"),
+                      axis.text.y = element_text (size=6, color= "black"),
+                      legend.position="top",
+                      legend.direction = "horizontal", 
+                      legend.text = element_text(size=6), 
+                      legend.title = element_text(size=6),
+                      panel.spacing = unit(10, "mm"))
+
+combined.data %>% ggplot() + 
+  geom_point(aes(x = diffusion.rate,
+                 y = energy.barrier, 
+                 shape= Segmentation), size =3, alpha = 0.5)+ 
+  facet_wrap(~Enzyme)+  
+  facet_wrap(~Enzyme,ncol=3, scales = "free_y")+ 
+  theme_white4+  scale_x_log10(breaks= c(0.01,0.1,1,10))+
+  ylab("Activation energy barrier range")+ 
+  xlab(expression(Average~diffusion~rate~(mu*m^2/s))) +
+  annotation_logticks(side= "b",
+                      short = unit(0.3,"mm"), 
+                      mid = unit(0.6,"mm"), 
+                      long = unit(1,"mm"))+ 
+  scale_shape_discrete(name = "Classification/diffusion calculatioin method")
+
+combined.data %>% ggplot() + 
+  geom_point(aes(x = diffusion.rate,
+                 y = occupancy, 
+                 shape= Segmentation, 
+                 color= energy.barrier), size =3, alpha = 0.8)+ 
+  facet_wrap(~Enzyme,ncol=3, scales = "free_y")+ 
+  theme_white4+
+  ylab("Activation energy barrier range")+ 
+  xlab(expression(Average~diffusion~rate~(mu*m^2/s))) +
+  scale_shape_discrete(name = "Classification/diffusion\n calculatioin method")+ 
+  facet_wrap(~Enzyme,ncol=3, scales = "free_y")+ 
+  theme_white4+  scale_x_log10(breaks= c(0.01,0.1,1,10))+
+  ylab("Mode occupancy")+ 
+  xlab(expression(Average~diffusion~rate~(mu*m^2/s))) +
+  annotation_logticks(side= "b",
+                      short = unit(0.3,"mm"), 
+                      mid = unit(0.6,"mm"), 
+                      long = unit(1,"mm"))+ 
+  scale_color_discrete(name = "Energy barrier", 
+                       labels= c(expression(E[a]>~2*~k[B]*T),
+                                 expression(0.5*~k[B]*T<~E[a]<~2*~k[B]*T),
+                                 expression(E[a]<~0.5*~k[B]*T)))+ 
+  scale_y_continuous(limits=c(0,0.8), breaks = c(0.25,0.5,0.75))
+
+```
+
+Next, We want to investigate the transition probabelities between each set of states in the Markov analysis. first we enter the info about all transition probabilities from th e vbSPT software. then we look into the transition matrix and the transition plots for 3 states classification and then for 4-6 states classification. According to the vbSPT $^4$ software the states with forbidden transition acquired transtion probability up to 0.012, therefore we assume the transition below this value as insignificant and cut off to 0. 
+
+```{r transitions , message= FALSE, warning= FALSE, error= FALSE, out.width= '80%', fig.align= "center"}
+
+## EndoV 
+TPs3 <- matrix(c(0.95661, 0.029396, 0.013996, 
+0.032374, 0.93085, 0.036774,
+0.013649, 0.052842,  0.93351), ncol = 3, nrow = 3, byrow=TRUE,
+dimnames = list( c( "1", "2", "3" ), c( "1", "2", "3" ) ))
+TPs3[,3] <- 1-TPs3[,1]-TPs3[,2]
+
+TPs4 <- matrix(c(0.93741, 0.03931, 8.976e-05, 0.02319,
+0.049923, 0.93926, 0.000502, 0.010311,
+8.8169e-05, 0.0062333, 0.97516, 0.018523,
+0.037565, 0.046461, 0.08798, 0.82799), ncol = 4, nrow = 4,byrow=TRUE,
+dimnames = list( c( "1", "2", "3","4" ), c( "1", "2", "3", "4" ) ))
+
+TPs4[,4] <- 1-TPs4[,1]-TPs4[,2]-TPs4[,3]
+
+TPs5 <- matrix (c(0.9544, 4.9542e-05, 0.036926, 4.2753e-05, 0.0085823,
+0.00015098, 0.77719, 0.016602, 0.0002771, 0.20578,
+0.047141, 0.0083615, 0.94407, 0.00028745, 0.00013803,
+2.3463e-05, 0.0046648, 0.0052891, 0.98355, 0.006475,
+0.020528, 0.050677, 0.037521,  0.084328,  0.80695), ncol = 5, nrow = 5,
+byrow=TRUE,
+dimnames = list( c( "1", "2", "3","4", "5" ), c( "1", "2", "3", "4","5" ) ))
+
+TPs5[,5] <- 1-TPs5[,1]-TPs5[,2]-TPs5[,3]-TPs5[,4]
+
+
+TPs6 <- 
+  matrix (c(0.95348, 1.791e-05, 0.036426, 3.1629e-05, 3.4068e-05, 0.010009,
+3.6084e-05,  0.8133, 4.0334e-05, 0.043668, 4.503e-05, 0.14291,
+0.047126, 0.0072012, 0.94561, 2.2855e-05, 1.6357e-05, 2.5436e-05,
+1.4611e-05, 0.01357, 0.0060266, 0.97259, 0.0077843, 1.4854e-05,
+1.6062e-05, 1.3594e-05, 1.537e-05, 0.042978, 0.9541, 0.0028807,
+0.052881, 0.11894, 0.11078, 0.054733, 6.7066e-05, 0.6626), ncol = 6, nrow = 6,
+byrow=TRUE,
+dimnames = list( c( "1", "2", "3","4", "5", "6" ), 
+                 c( "1", "2", "3", "4","5", "6" ) ))
+
+TPs6[,6] <- 1-TPs6[,1]-TPs6[,2]-TPs6[,3]-TPs6[,4]-TPs6[,5]
+
+
+EndoVTPMs <- list(TPs3, TPs4, TPs5, TPs6)
+
+
+## mEndoV 
+
+TPs3 <- matrix(c(0.95433, 0.028874, 0.016795,
+                   0.021932, 0.94646, 0.031604,
+                   0.01625, 0.074937, 0.90881), ncol = 3, nrow = 3,byrow=TRUE,
+                 dimnames = list( c( "1", "2", "3" ), c( "1", "2", "3" ) ))
+TPs3[,3] <- 1-TPs3[,1]-TPs3[,2]
+
+TPs4 <- matrix(c( 0.92981, 0.040077, 0.00012982, 0.029987,
+                    0.038426, 0.9549, 0.0011705, 0.0054991,
+                    0.00015039, 0.0054604, 0.97193, 0.02246,
+                    0.037728, 0.043017, 0.10655, 0.8127), ncol = 4, nrow = 4,
+                 byrow=TRUE,
+                 dimnames = list( c( "1", "2", "3","4" ), 
+                                  c( "1", "2", "3", "4" ) ))
+
+TPs4[,4] <- 1-TPs4[,1]-TPs4[,2]-TPs4[,3]
+TPs5 <- matrix(c(0.93081, 0.03312, 0.002962, 0.00018573, 0.032922,
+                      0.030673, 0.95123, 0.0028823, 7.2349e-05, 0.015144,
+                      0.0020799, 0.0063367, 0.97809, 0.011225, 0.0022689,
+                      0.0015894, 0.00010249, 0.052381, 0.93754, 0.0083884,
+                      0.112, 0.17646, 0.039738, 0.016505, 0.6553),
+                 ncol = 5, nrow = 5,byrow=TRUE,
+                 dimnames = list( c( "1", "2", "3","4", "5" ), 
+                                  c( "1", "2", "3", "4","5" ) ))
+
+TPs5[,5] <- 1-TPs5[,1]-TPs5[,2]-TPs5[,3]-TPs5[,4]
+
+TPs6 <- 
+  matrix(c(0.95406, 3.1288e-05, 0.037462, 4.0635e-05, 0.0019541, 0.006451,
+             4.5049e-05, 0.79913, 5.6622e-05,0.037186, 6.0808e-05, 0.16352,
+             0.029294, 0.0064143, 0.95815, 0.001356, 1.9222e-05, 0.0047654,
+             1.5291e-05, 0.0054242, 0.0069428, 0.975, 0.012598, 1.6428e-05,
+             0.0031101, 1.3056e-05, 1.2772e-05, 0.055992, 0.94086, 1.4569e-05,
+             0.046568, 0.11461, 0.13157, 0.048852, 8.4399e-05, 0.65831),
+                 ncol = 6, nrow = 6,byrow=TRUE,
+           dimnames = list( c( "1", "2", "3","4", "5", "6" ), 
+                            c( "1", "2", "3", "4","5", "6" ) ))
+
+TPs6[,6] <- 1-TPs6[,1]-TPs6[,2]-TPs6[,3]-TPs6[,4]-TPs6[,5]
+
+mEndoVTPMs <- list(TPs3, TPs4, TPs5, TPs6)
+
+
+## hOGG1 
+
+TPs3 <- matrix(c(0.9666, 0.032069, 0.0013284,
+                   0.05007, 0.92522, 0.024712,
+                   0.032472, 0.17242, 0.7951), ncol = 3, nrow = 3, byrow=TRUE,
+                 dimnames = list( c( "1", "2", "3" ), c( "1", "2", "3" ) ))
+TPs3[,3] <- 1-TPs3[,1]-TPs3[,2]
+
+TPs4 <- matrix(c(0.96335, 0.032183, 0.0042403, 0.00022413,
+                      0.045137, 0.9066, 0.048146, 0.00012046,
+                      0.016685, 0.10612, 0.87602, 0.0011666,
+                      0.0036492, 0.023277, 0.017954, 0.95512), 
+                 ncol = 4, nrow = 4,byrow=TRUE,
+                 dimnames = list( c( "1", "2", "3","4" ), 
+                                  c( "1", "2", "3", "4" ) ))
+TPs4[,4] <- 1-TPs4[,1]-TPs4[,2]-TPs4[,3]
+
+
+TPs5 <- matrix(c(0.95508, 0.033605, 0.00090221, 0.0104, 1.0501e-05,
+                    0.049252, 0.93558, 0.010276, 0.0048537, 3.3929e-05,
+                    0.00025454, 0.021874, 0.91375, 0.064083, 3.8251e-05,
+                    0.046563, 0.052749, 0.15683, 0.74224, 0.0016217,
+                    0.00020094, 0.0054447, 0.012249, 0.011237, 0.97087),
+                 ncol = 5, nrow = 5,byrow=TRUE,
+                 dimnames = list( c( "1", "2", "3","4", "5" ), 
+                                  c( "1", "2", "3", "4","5" ) ))
+TPs5[,5] <- 1-TPs5[,1]-TPs5[,2]-TPs5[,3]-TPs5[,4]
+
+
+TPs6 <- 
+  matrix(c( 0.9563, 0.034261, 2.8146e-05, 0.0022799, 0.0071223, 4.1084e-06,
+              0.05502, 0.93592, 4.0519e-05, 0.0089255, 4.1987e-05, 4.9935e-05,
+              0.00010161, 0.00012647, 0.77834, 0.00015189, 0.22124, 4.132e-05,
+              0.0013556, 0.025735, 0.015305, 0.95328, 0.0042687, 5.4507e-05,
+              0.042885, 0.046863, 0.064245, 0.10341, 0.74114, 0.0014561,
+              0.00011296, 0.0043837, 0.0012936, 0.0090012, 0.013446, 0.97176),
+           ncol = 6, nrow = 6,byrow=TRUE,
+           dimnames = list( c( "1", "2", "3","4", "5", "6" ), 
+                            c( "1", "2", "3", "4","5", "6" ) ))
+
+TPs6[,6] <- 1-TPs6[,1]-TPs6[,2]-TPs6[,3]-TPs6[,4]-TPs6[,5]
+
+hOGG1TPMs <- list(TPs3, TPs4, TPs5, TPs6)
+
+par(mar=c(1,1,1,1))
+
+transition.matrix <- new( "markovchain", transitionMatrix = EndoVTPMs[[1]])
+transition.matrix@transitionMatrix[transition.matrix@transitionMatrix<0.012] <- 0
+print("Transition matrix of 3-state classification of wt-EndoV")
+print( transition.matrix )
+print("The features of the transition matrix ")
+summary(transition.matrix)
+print("Here is the transition diagram:")
+graph <- as(transition.matrix, "igraph") 
+plot(graph, vertex.size = 15,
+     edge.label = round(E(graph)$prob, digits = 3),
+     edge.arrow.size=0.5)
+
+transition.matrix <- new( "markovchain", transitionMatrix = mEndoVTPMs[[1]])
+transition.matrix@transitionMatrix[transition.matrix@transitionMatrix<0.012] <- 0
+print("Transition matrix of 3-state classification of wm-EndoV")
+print( transition.matrix )
+print("The features of the transition matrix ")
+summary(transition.matrix)
+print("Here is the transition diagram:")
+graph <- as(transition.matrix, "igraph") 
+plot(graph, vertex.size = 15,
+     edge.label = round(E(graph)$prob, digits = 3),
+     edge.arrow.size=0.5)
+
+transition.matrix <- new( "markovchain", transitionMatrix = hOGG1TPMs[[1]])
+transition.matrix@transitionMatrix[transition.matrix@transitionMatrix<0.012] <- 0
+print("Transition matrix of 3-state classification of hOGG1")
+print( transition.matrix )
+print("The features of the transition matrix ")
+summary(transition.matrix)
+print("Here is the transition diagram:")
+graph <- as(transition.matrix, "igraph") 
+plot(graph, vertex.size = 15,
+     edge.label = round(E(graph)$prob, digits = 3),
+     edge.arrow.size=0.5)
+
+```
+
+One interesting observation from these transition matrices is that for wt-EndoV and wm-EndoV hOgg1 the transition probability from [2] to [1] is larger than [3] to [1] by 2.3, 1.4 and 1.6 folds respectively. State number [1], [2] and [3] in terms of energy barrier of sliding are corresponding to "interrogation", "helical sliding" and "hopping" modes respectively. This result means proteins are consistently more likely to engage in damage recognition when helical sliding than when hopping. 
+
+While vbSPT reliably selected a single mode as the best fit for simulated random walks, the software failed to converge on a reasonable number of states, and always selected more than three states to be the best fit for all proteins (eight states for wm- and wt-EndoV, 6 states for hOGG1). To investigate the existence of non-Markovian transitions we checked the dynamic of mode switching for all conditions of three consecutive transitions for all proteins. There are 12 alternative sequences of three consecutive transitions for each protein. We calculate the relative probabilities of the final transition given the same initial transition. The result of this analysis is shown in figure 3; the x axis shows the initial transition and the y axis is the relative probability of transition to either of two possible states given specific initial transitions. For example for wt-EndoV we see that given the initial transition is from 1 to 2 the chance of going back to 1 is higher than going to 3. Similarly given the initial transition from 3 to 2 it is more likely that proteins go back to state 3 than to 1. In other words proteins the second transition is affected by initial transition and in state 2 proteins have higher tendency to go back to the state that they initially had been in. This observation for hOGG1 as less significant since protein still prefer to go to state 1 no matter from which state they have been in previously, however if the initial transition is 1 to 2 there is higher chance to go back to one than the initial transition from 1 to 3. In the sequences of transitions where the middle state is 1 this contrast is not observed and proteins consistently prefer to go back to state 2 rather than 3 no matter from which state they switched to 1. For the sequences with state 3 in the middle proteins consistently prefer state 2 with no matter what the previous transition is, besides low occurrence in there sequences makes the results less significant. Therefore we can clearly see the effect of memory in transition for the sequences of transition in which the middle state is two. This manifests the non-Markovain transition for these sequences of transitions and can be an explanation for why vbSPT overestimates the number of states. 
+
+```{r memory , message= FALSE, warning= FALSE, error= FALSE, out.width= '80%', fig.align= "center"}
+
+
+temp <- segmented.localMSDs %>%  
+  arrange(New_Unique_trajectory_ID, Frame_number) %>% 
+  filter(!is.na(Markov.state)) %>% 
+  ungroup() %>% 
+  mutate(Markov.state0 = lag(Markov.state, n=1)) %>% 
+  group_by(New_Unique_trajectory_ID) %>%
+  mutate(state.change = Markov.state- lag(Markov.state, n= 1)) %>% 
+  mutate(state.change = ifelse(is.na(state.change), 0, state.change)) %>% 
+  mutate(midd1 = abs(sign(state.change))) %>% 
+  mutate(transition = ifelse(midd1==1, Markov.state+ Markov.state0*10,0)) %>% 
+  filter(transition!=0) %>% 
+  mutate(transition0 = lag(transition, n=1)) %>%
+  filter(!is.na(transition0)) %>% 
+  ungroup() %>% 
+  group_by(Enzyme, transition0, transition) %>% 
+  summarise( n = n()) %>% 
+  group_by(Enzyme, transition0) %>% 
+  mutate(total = sum(n), probability = n/total) %>% 
+  mutate(transition.seq = round(transition0/10)*100 + transition) %>% 
+  ungroup() %>% 
+  mutate(occurance.rate = n) %>% 
+  mutate(initial = round(transition0/10), 
+         middle = round(transition/10), 
+         final =  transition%%10)
+
+
+
+temp$transition.seq <- factor(temp$transition.seq, 
+                              levels = c("121", "123", "321", "323", 
+                                         "212", "213", "312", "313", 
+                                         "131", "132", "231", "232"))
+temp$transition0 <- factor(temp$transition0, 
+                              levels = c("12", "32", "21", "31", "13", "23"))
+
+library(plyr)
+
+temp$transition0 <- revalue(temp$transition0, 
+                           c("12"= "1>2", "32"= "3>2", "21"= "2>1", 
+                             "31"= "3>1", "13"= "1>3", "23"= "2>3"))
+
+temp$Enzyme <-  
+  revalue(temp$Enzyme, c("hOgg1" = "hOGG1", "EndoV" = "wt-EndoV", 
+                                        "mEndoV" = "wm-EndoV"))
+
+detach("package:plyr", unload=TRUE)
+
+
+temp %>% arrange(Enzyme, transition.seq) %>% 
+   ggplot(aes(x =as.factor(transition0), y = probability, 
+              size = occurance.rate, color = as.factor(middle)))+
+  geom_point(shape =17) + 
+  geom_text(aes(label=final),hjust=0.5, vjust=-1.5, size=3)+ 
+  facet_wrap(~Enzyme) + 
+  xlab("Initail transition") + 
+  ylab("Relative probability of second transition\n given the same initail transition")+ 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) + 
+  scale_y_continuous(limits = c(0,1.05))+ 
+  scale_size_continuous(range = c(0.5, 5), breaks = c(50,100,200,300), 
+                        name = "Occurence rate")+ 
+  scale_color_discrete(name = "Middle state")
+
+
+
+```
+
+In order to investigate the role of population heterogeneity in overestimation of number of states we checked the transition probabilities of the Markov chains for number of states estimated above 3. In the paper related to the vbSPT software a data set with forbiden transition between some of the states was analysed and it was shown that those states acquired transition probability of maximum 0.0121. According to this we asummed transition probabilities below this value as non-transition states and we plotted the transition probabilities of Markov chain. As reviewer predicted from the plot we can see that these Markov chains are either nearly or truly reducible. A reducible Markov chain is define as the one in which some states cannot reach other states directly or indirectly (transition probability effectively 0) 2. By this definition we see that 3 state Markov chains for all proteins are irreducible and the average transition probabilities from and to each state is ranging from 0.06-0.1 with minimum of 0.026. We define nearly reducible as a Markov chains in which reaching any state given any starting states is effectively impossible, we quantify this by say transition probability less than 0.025.
+
+
+By these definitions we see that for EndoV 4 states Markov chain is nearly reducible since the chance of reaching to any other states from state 3 is less 0.025. The Markov chain with 5 states is reducible since it is impossible to reach to any other state from state 4 and while states 1 and 3 communicate to each other it is impossible to reach any other states form them. 6 states Markov chain is reducible because it is impossible to reach 5 from any other states and similar to 5 states while states 1 and 3 communicate to each other it is impossible to reach any other states form them.
+
+
+```{r Hetro-EndoV , message= FALSE, warning= FALSE, error= FALSE, out.width= '80%', fig.align= "center"}
+
+transition.matrix <- new( "markovchain", transitionMatrix = EndoVTPMs[[2]])
+transition.matrix@transitionMatrix[transition.matrix@transitionMatrix<0.012] <- 0
+print( transition.matrix )
+summary(transition.matrix)
+
+graph <- as(transition.matrix, "igraph") 
+plot(graph, vertex.size = 15,
+     edge.label = round(E(graph)$prob, digits = 3),
+     edge.arrow.size=0.5)
+
+
+transition.matrix <- new( "markovchain", transitionMatrix = EndoVTPMs[[3]])
+transition.matrix@transitionMatrix[transition.matrix@transitionMatrix<0.012] <- 0
+print( transition.matrix )
+summary(transition.matrix)
+
+graph <- as(transition.matrix, "igraph") 
+plot(graph, vertex.size = 15,
+     edge.label = round(E(graph)$prob, digits = 3),
+     edge.arrow.size=0.5)
+
+
+transition.matrix <- new( "markovchain", transitionMatrix = EndoVTPMs[[4]])
+transition.matrix@transitionMatrix[transition.matrix@transitionMatrix<0.012] <- 0
+print( transition.matrix )
+summary(transition.matrix)
+
+graph <- as(transition.matrix, "igraph") 
+plot(graph, vertex.size = 15,
+     edge.label = round(E(graph)$prob, digits = 3),
+     edge.arrow.size=0.5)
+
+
+
+```
+
+For wm-EndoV the 4 state Markov chain is nearly reducible because the chance of getting to any other state from state 3 is less than 0.025. The 5 state Markov chain is reducible since it is impossible to get to any other state from state 3, and it is impossible to get to state 1,2 and 5 from state 4. The 6 state Markov chain is also reducible because while 4 and 5 communicate with each other it is impossible to reach any other states from them, and while 1 and 3 communicate with each other it is impossible to each any other state from them as well.  
+
+
+```{r Hetro-mEndoV , message= FALSE, warning= FALSE, error= FALSE, out.width= '80%', fig.align= "center"}
+
+transition.matrix <- new( "markovchain", transitionMatrix = mEndoVTPMs[[2]])
+transition.matrix@transitionMatrix[transition.matrix@transitionMatrix<0.012] <- 0
+print( transition.matrix )
+summary(transition.matrix)
+
+graph <- as(transition.matrix, "igraph") 
+plot(graph, vertex.size = 15,
+     edge.label = round(E(graph)$prob, digits = 3),
+     edge.arrow.size=0.5)
+
+
+transition.matrix <- new( "markovchain", transitionMatrix = mEndoVTPMs[[3]])
+transition.matrix@transitionMatrix[transition.matrix@transitionMatrix<0.012] <- 0
+print( transition.matrix )
+summary(transition.matrix)
+
+graph <- as(transition.matrix, "igraph") 
+plot(graph, vertex.size = 15,
+     edge.label = round(E(graph)$prob, digits = 3),
+     edge.arrow.size=0.5)
+
+
+transition.matrix <- new( "markovchain", transitionMatrix = mEndoVTPMs[[4]])
+transition.matrix@transitionMatrix[transition.matrix@transitionMatrix<0.012] <- 0
+print( transition.matrix )
+summary(transition.matrix)
+
+graph <- as(transition.matrix, "igraph") 
+plot(graph, vertex.size = 15,
+     edge.label = round(E(graph)$prob, digits = 3),
+     edge.arrow.size=0.5)
+
+
+
+```
+
+For hOGG1, all Markov chains 4, 5 and 6 states are reducible. In the 4 state Markov it is impossible to reach state 4 from any other states. In 5 state Markov chain it is impossible to reach state 5 from any other states and while 1 and 2 communicate to each other it is impossible to reach any other states from them. In 6 states Markov chain states 6 cannot be reached from any other state, and it is impossible to reach any other states from states 1and 2 while they communicate with each other. 
+
+
+
+```{r Hetro-hOGG1 , message= FALSE, warning= FALSE, error= FALSE, out.width= '80%', fig.align= "center"}
+
+transition.matrix <- new( "markovchain", transitionMatrix = hOGG1TPMs[[2]])
+transition.matrix@transitionMatrix[transition.matrix@transitionMatrix<0.012] <- 0
+print( transition.matrix )
+summary(transition.matrix)
+
+graph <- as(transition.matrix, "igraph") 
+plot(graph, vertex.size = 15,
+     edge.label = round(E(graph)$prob, digits = 3),
+     edge.arrow.size=0.5)
+
+
+transition.matrix <- new( "markovchain", transitionMatrix = hOGG1TPMs[[3]])
+transition.matrix@transitionMatrix[transition.matrix@transitionMatrix<0.012] <- 0
+print( transition.matrix )
+summary(transition.matrix)
+
+graph <- as(transition.matrix, "igraph") 
+plot(graph, vertex.size = 15,
+     edge.label = round(E(graph)$prob, digits = 3),
+     edge.arrow.size=0.5)
+
+
+transition.matrix <- new( "markovchain", transitionMatrix = hOGG1TPMs[[4]])
+transition.matrix@transitionMatrix[transition.matrix@transitionMatrix<0.012] <- 0
+print( transition.matrix )
+summary(transition.matrix)
+
+graph <- as(transition.matrix, "igraph") 
+plot(graph, vertex.size = 15,
+     edge.label = round(E(graph)$prob, digits = 3),
+     edge.arrow.size=0.5)
+
+
+
+```
 
 
 # Diffusion rate analysis of the classified data 
@@ -2679,7 +3297,7 @@ segmented.localMSDs %>%
 
 
 segmented.localMSDs %>% 
-  ungroup() %>% filter(localMSD_05!=0, Visual_confirmation=="Yes", NaCl>0) %>% 
+  ungroup() %>% filter(localMSD_05!=0, NaCl>0) %>% 
   group_by(Enzyme, NaCl, Markov.state ) %>% 
   summarise(meanMSD = mean(localMSD_05), 
             errorMSD= sd(localMSD_05)/sqrt(n())) %>% 
@@ -2965,6 +3583,7 @@ ggsave(filename = "Fig.1c3.svg" ,path= "Figures/" ,
 
 # Fig.1a --- Instantaneous diffusion rate  
 segmented.localMSDs <-  readRDS("Processed/segmented_localMSD.rds")
+localMSDs.sim <- readRDS("Processed/localMSD_sim_data.rds")
 
 segmented.localMSDs$energy.barrier <- 
   factor(segmented.localMSDs$energy.barrier,
@@ -3172,9 +3791,9 @@ diffusion.occupancy %>% ggplot() +
                       mid = unit(0.6,"mm"), 
                       long = unit(1,"mm"))+ 
   scale_color_discrete(name = "Energy barrier", 
-                      labels= c(expression(E[a]>~2*K[B]*T),
-                                expression(0.5*K[B]*T<~E[a]<~2*K[B]*T),
-                                expression(E[a]<~0.5*K[B]*T)))+ 
+                      labels= c(expression(E[a]>~2*~k[B]*T),
+                                expression(0.5*~k[B]*T<~E[a]<~2*~k[B]*T),
+                                expression(E[a]<~0.5*~k[B]*T)))+ 
   scale_shape_discrete(name = "Classification method")+ 
   scale_y_continuous(limits=c(0,0.8), breaks = c(0.25,0.5,0.75))
 
@@ -3243,9 +3862,9 @@ segmented.localMSDs %>% ungroup() %>% filter(localMSD_05!=0,
   xlab("NaCl Concentration (mM)")+
   ylab(expression(Average~diffusion~rate~(mu*m^2/s)))+ 
   scale_color_discrete(name = "Energy barrier", 
-                       labels= c(expression(E[a]>~2*K[B]*T),
-                                 expression(0.5*K[B]*T<~E[a]<~2*K[B]*T),
-                                 expression(E[a]<~0.5*K[B]*T)))+ 
+                       labels= c(expression(E[a]>~2*~k[B]*T),
+                                expression(0.5*~k[B]*T<~E[a]<~2*~k[B]*T),
+                                expression(E[a]<~0.5*~k[B]*T)))+ 
   annotation_logticks(side= "b",short = unit(0,"mm"),
                       mid = unit(0.6,"mm"), long = unit(1,"mm"))
 
