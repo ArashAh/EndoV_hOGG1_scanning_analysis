@@ -1,5 +1,5 @@
 ---
-title: "Breaking the speed limit: multimode fast scanning of DNA by Endonuclease V \n (Supplementary info)"
+title: "Breaking the speed limit: multimode fast scanning of DNA by Endonuclease V \n (Supplementary information)"
 author: "Arash Ahmadi et al."
 output:
   pdf_document:
@@ -14,21 +14,21 @@ output:
 ---
 # Data acquisition
 
-The details of data acquisition is explained in the method and here a brief overview of the data is given in addition to some experimental conditions in which data has been acquired. 
+The details of data acquisition are explained in the method section of the paper and here a brief overview of the data is given, in addition to some experimental conditions in which data has been acquired. 
 
 ## Experimental details
 
-The red laser line with wavelength of 647nm was used to excite the ATTO 647N dyes. 
+The red laser line with wavelength of 647nm was used to excite the ATTO 647N dye. 
 
-The illumination laser power in the sample plain were measured to be $0.05- 1 kW/cm^2$. 
+The illumination laser power in the sample plane were measured to be $0.05- 1 kW/cm^2$. 
 
-The exposure time was 7.5 ms and 23.5 ms for EndoV and hOGG1 respectively. The optimized exposure time for detecting maximum possible signal intensity in maximum lifetime of the fluorescent dyes was decided empirically and after several initial observations of protein-DNA interaction. 
+The exposure time was 7.5 ms and 23.5 ms for EndoV and hOGG1, respectively. The optimum exposure time for detecting maximum possible signal intensity in maximum lifetime of the fluorescent dyes was decided empirically and after several initial observations of protein-DNA interactions. 
 
-The power of trapping laser in the sample plain was measured to be $1.3-18 mW$.
+The power of the trapping laser in the sample plane was measured to be $1.3-18 mW$.
 
 ## Structure of data 
 
-The raw data sets are streams of videos with the length ranging from 20 k frames to 200 k frames. Depending on the sample condition each data set can contain varying numbers of protein-DNA interaction recorded as trajectories of protein scanning along the DNA. 
+The raw data sets are streams of videos with a length ranging from 20 k frames to 200 k frames. Depending on the sample condition, each data set can contain varying numbers of protein-DNA interactions recorded as trajectories of protein scanning along the DNA. 
 
 Total amount of Data: 
 
@@ -44,14 +44,14 @@ In detecting the protein-DNA interaction as trajectories we had two main issues 
 
 1) The efficiency of the analysis was drastically lowered when attempting to process very large data sets and it could take unreasonably long time to process the data. 
 
-2) The existing plugins were not fully automated and needed a lot of user intervention which could introduce user bias in the analysis. In addition the need for user intervention  further lowered the efficiency of the analysis since trajectories had to be detected among a very large number of frames.
+2) The existing plugins were not fully automated and needed a lot of user intervention which could introduce user bias in the analysis. In addition, the need for user intervention  further lowered the efficiency of the analysis since trajectories had to be detected among a very large number of frames.
 
 Therefore we decided to develop a code in R to perform the tracking and further analysis in a more efficient and automated way. 
 
 
 ## Localization of the single molecule signals 
 
-The signal from single molecules were localized in *FIJI* $^1$ using *ThunderSTORM* $^2$ and the camera setup configuration in the in the software was set as: 
+The signal from single molecules were localized in *FIJI* $^1$ using *ThunderSTORM* $^2$, and the camera setup configuration in the software was set as: 
 
 * pixel size : 112nm 
 * Photoelecrons per A/D count : 20.02 
@@ -91,14 +91,11 @@ run("Close");
 }
 
 ``` 
-
-The output of this analysis were the location of signals registered in time series with the detail of localization, as json files. 
-
-All signal detected in each data set are projected into single images. 
+All signals detected in each data set are projected into single images. 
 
 Fig.1 is an example of projected signals localized in one data set : 
 
-![](Processed/Pics/mEndoV_10mMNaCl_2016102906_7.5mspf_112nmpp_1-10_2000X.png)
+![Localization picture of one data set](Processed/Pics/mEndoV_10mMNaCl_2016102906_7.5mspf_112nmpp_1-10_2000X.png)
 
  
 ## Packages used in R
@@ -135,10 +132,9 @@ library(igraph)
 
 
 ## Localization of the beads 
+For each data set beads were localized using *TrackMate* $^3$ plugin in FIJI and the output was used for localization of DNA in tracking code in R. Here are the scripts used for this purpose in FIJI and R. 
 
-Each data set contains some frames that are recorded while the bright field transmission light was on, thus the bead was localized and once the transmission light was turned off and the fluorescence was turned on, the position of bead remained unchanged. Any change in the position of the bead was happening in bright field, therefore trackable. 
 
-First using this script in FIJI the on and off state of bright field is registered in terms of frame number and the output is saved as text file: 
 
 ```{r FIJI Average intensity, eval = FALSE, message=FALSE, warning= FALSE, error=FALSE}
 dir1 = getDirectory("");
@@ -160,10 +156,6 @@ for (i=0; i<list.length; i++) {
       }
 ``` 
 
-
-For each data set beads were localized using *TrackMate* $^3$ plugin in FIJI and the output was saved as XML files. 
-
-Later these files were processed using the R script as follows: 
 
 ```{r bead localization, eval= FALSE, message= FALSE, warning= FALSE, error= FALSE}
 rm(list = ls())
@@ -273,8 +265,6 @@ Output$YPosition <- Output$YPosition * 112
 saveRDS(Output, "~/data/mEndoV/outputs/mEndoVBead.rds")
 
 ``` 
-The output are exported as RSD files from R and are used for localization of DNA in the next steps.  
-
 
 # Tracking 
 
@@ -448,8 +438,7 @@ knitr::include_graphics("Processed/Pics/tracking4.png")
 
 ## Operating function
 
-Here is the list of functions that are sourcing the interface, these functions have been tested on different data sets and they have shown high accuracy in the output however they might not be time efficient and some steps can take a long time. This can be further optimized. 
-
+Here is the list of functions that are used in the interface. 
 
 ```{r tracking functions, eval= FALSE, message= FALSE, warning= FALSE, error= FALSE}
 
@@ -962,9 +951,9 @@ readinteger <- function(What)
 
 ## Extracting frames containing trajectories 
 
-The intermediate output of the code in the last step is the address to the detected trajectories (in terms of frame number) that later will be used to extract the frames in which the interaction is happening.
+The output of the code in the last step is the address to the detected trajectories (in terms of frame number) that later will be used to extract the frames in which the interaction is observed. 
 
-The script that was used to extract the frames of the events and concatenate them one after another in FIJI: 
+Here is the script that was used to extract the frames of the events and concatenate them one after another in FIJI. The outputs of this script are the tiff files that contain all events (trajectories) registered around the DNA.  
 
 
 ```{r FIJI frameCutting, eval = FALSE, message= FALSE, warning= FALSE, error= FALSE}
@@ -1012,20 +1001,16 @@ print(i);
 saveAs("tiff", "FrameCuts\\"+FileName);
 ``` 
 
-The outputs of this script are the tiff files that contain all events (trajectories) happening around the DNA. 
-
-The final output of this part is the accumulation of trajectories registered in terms of frame number, position of the signal as well as detection detail from all data sets in a single RDS file for each protein.  
-
 
 # Data transformation
 
-The result of the image processing and tracking code was the trajectories information which is recorded within three files for each protein as well as three files for bead position registration. These six files are the main input for the upcoming steps. 
-
-From this step onward the outputs of all steps are included along the code in a file titled "Processed". All information for running the code and producing the PDF report is provided in this folder. 
 
 ## Rearranging the raw data 
 
-At first the result of image processing for bead localization and the result of single molecule localization are loaded and combined. The run time of this step can be up to several minutes but the result is saved in the repository once and the code will find that automatically in order to perform further steps. 
+
+The result of the image processing and tracking code were two RDS files containing the bead positions and the trajectories information for each protein (only 6 data sets among 92). Using following script these information are combined into a single data set that is ready for further analysis.
+
+From this step onward the outputs of all steps are included in a folder titled "Processed". All information for running the code and producing the PDF report is provided in this folder. 
 
 
 ```{r Rearranging the raw data, message= FALSE, warning= FALSE, error= FALSE, eval=FALSE }
@@ -1114,7 +1099,7 @@ if (!file.exists(paste("Processed/", SubStep, "SignalWithBeadPosition",
 
 ## Filtering of the data sets
 
-Some data sets do not have any trajectory recorded and in some cases there are two DNAs attached to one bead, in order to be able to make the rest of analysis automatic we need to fix these anomalies in the data sets. Filtering the data sets without trajectories is done mostly automatically, the only thing that needs to be manually adjusted is where there are two DNAs in the field of view and they have a rather large angle toward each other; in this case there is separation point between the two branches that should be recognized by the user while seeing the trajectory traces on the shown plot in this part. This step needs to be done only for those especial data sets and only once. The rest of filtering and rearrangement is happening automatically. 
+Some data sets do not have any trajectory recorded and in some cases there are two DNAs attached to one bead. Using this script the data sets without trajectories are filtered and those with two DNAs are separated into two data set for each DNA. 
 
 ```{r Filtering of the data sets, message= FALSE, warning= FALSE, error= FALSE, eval=FALSE }
 
@@ -1194,13 +1179,11 @@ In this step we:
 
 1. adjust the end of DNA at bead position. 
 
-2. correct for those data sets that have two DNA. 
+2. apply the rotation matrix to rotate the trajectories so that the displacements are mostly projected into the X-direction. 
 
-3. apply the rotation matrix to rotate the trajectories so that the displacements are mostly projected into x direction. 
+3. make a threshold for the fluctuations in Y-direction.  
 
-4. make a threshold for the fluctuations in y.  
-
-In Fig.5,6 and 8 the trace of the detected trajectories for different data sets color by whether they are within y fluctuation threshold or not.  
+In Fig. 6,7 and 8 the traces of the detected trajectories for different data sets are coloured by whether they are within the Y-fluctuation threshold or not.  
 
 ```{r trajectory alignment, fig.width=20, fig.height=8, message= FALSE, warning= FALSE, error= FALSE, eval= FALSE}
 
@@ -1268,6 +1251,13 @@ if (!file.exists(paste("Processed/", SubStep, "AlignedData",
     centred_Y, -estimate)[2]) %>% 
     ungroup()
   
+  ## Maximum Y fluctuation is obtained from the visually inspected data
+  
+ datWithBeadPositionsRotated %>% 
+    filter(Visual_confirmation == "Yes") %>% 
+  group_by(Unique_trajectory_ID) %>%  
+    summarise(sd = sd(corrected_Y)) %>% 
+  summarise(max(sd))
   
   onDNAthresholds <- datWithBeadPositionsRotated %>%
     dplyr::filter(Analysis_required == "Simple", 
@@ -1285,6 +1275,31 @@ if (!file.exists(paste("Processed/", SubStep, "AlignedData",
   datWithBeadPositionsRotated %<>% 
     filter(Analysis_required == "Simple")
   
+  # check the y fluctuation of protein trajectories on DNA 
+  
+  datWithBeadPositionsRotated%>% 
+    filter(`Delta_X > 300`== "Yes", On_DNA) %>% 
+    group_by(Enzyme, Unique_trajectory_ID) %>%
+  summarise(sdX= sd(corrected_X), sdY= sd(corrected_Y)) %>%
+  ungroup() %>% 
+  filter(!is.na(sdX)) %>% 
+  group_by(Enzyme) %>%
+  summarise(Y.fluctuation = mean(sdY))
+  
+  # compare with y fluctuation of proteins stuck to the surface 
+  
+  datWithBeadPositionsRotated%>% 
+    filter(`Delta_X > 300`== "No", !On_DNA) %>% 
+    group_by(Enzyme, Unique_trajectory_ID) %>%
+  summarise(sdX= sd(corrected_X), sdY= sd(corrected_Y), length = n()) %>%
+  ungroup() %>% filter(length > 100) %>% 
+  filter(!is.na(sdX)) %>% 
+  group_by(Enzyme) %>%
+  summarise(Y.fluctuation = mean(sdY))
+  
+  # trajectories on DNA fluctuate in y around twice as much as proteins stuck to 
+  # the sruface
+  
   saveRDS(datWithBeadPositionsRotated, paste("Processed/", 
     SubStep, "AlignedData", time1.3, ".rds", sep = ""))
   } else {
@@ -1292,6 +1307,9 @@ if (!file.exists(paste("Processed/", SubStep, "AlignedData",
     SubStep, "AlignedData", time1.3, ".rds", sep = ""))
   
   }
+
+
+ 
 # These are the outputs of this step
 
 datWithBeadPositionsRotated %>% 
@@ -1348,15 +1366,11 @@ knitr::include_graphics("Processed/Pics/hOGG1Filtered.png")
 ```
 
 
-# Blinking correction and trajectory overview 
-
-Based on their fluorescence nature the organic dyes that we have used go to off state for very short periods of time (blinking), thus before going further in the analysis we need to correct for this effect.  
+# Blinking correction and binding lifetime 
 
 ## Blinking correction 
 
-First we check if all frames are contiguous within trajectories and then correct for those trajectories that are separated from each other within just one frame, provided that the spatial separation of the detected signal in two adjacent frames is less than our tracking threshold. 
-
-
+The dyes used in these experiments can go to off state for a very short period of time (blinking). The tracking code separates the trajectories after each blinking event, in this part we correct this effect using following script. 
 
 ```{r Blinking correction, message= FALSE, warning= FALSE, error= FALSE}
 
@@ -1408,9 +1422,12 @@ if (!file.exists(paste("Processed/", SubStep, "AlignedDataBlinkingCorrected",
 
 ```
 
-The corrected data is saved and ready for further analysis. In order to show the effect of blinking and have a sense of diffusion we plotted 2 trajectories of each protein in Fig.9-14. The steps in the trajectories are colored by the their separation prior to the blinking correction, in other words along with changing the color in each trajectory the dye has been blinking once. The horizontal axis of the plot is frame number and for EndoV and the mutant the frame interval is 7.5 ms and for hOgg1 is 23.5 ms. The vertical axis is the position of the protein along the DNA in terms of nm.  
 
-```{r Showing trajectories, message= FALSE, warning= FALSE, error= FALSE, out.width= '70%', fig.align= "center", fig.cap= "Trajectories"}
+## Binding lifetime 
+
+The binding life time is defined as the duration of uninterrupted binding and scanning events. The binding lifetime of different proteins in different salt concentrations is shown in Fig.9.  
+
+```{r binding lifetime,  message= FALSE, warning= FALSE, error= FALSE, fig.align= "center", fig.cap="Binding lifetime", out.width= '70%'}
 
 trajectoryLengths <- CorrectedBlinking %>% 
   group_by(Enzyme, NaCl, New_Unique_trajectory_ID) %>%
@@ -1419,86 +1436,6 @@ trajectoryLengths <- CorrectedBlinking %>%
             duration = numFrames * unique(Frame_interval)/1000) %>% 
   arrange(desc(numFrames))
 
-k = 0
-for (i in trajectoryLengths %>% 
-     filter(Enzyme == "EndoV") %>%
-     extract2("New_Unique_trajectory_ID") %>% 
-     unique()) {
-  k = k + 1
-  if (k == 3) 
-    next
-  
-  p <- CorrectedBlinking %>% 
-    filter(New_Unique_trajectory_ID ==i) %>% 
-    ggplot(aes(x = Frame_number, y = corrected_X, 
-               color = factor(Unique_trajectory_ID))) + 
-    geom_line(alpha = 0.5) + 
-    geom_point() + 
-    ggtitle("EndoV")+
-    xlab("Frame number")+
-    ylab("Position along DNA (nm)")
-  
-  print(p)
-  
-  if (k == 2) 
-    break
-}
-
-k = 0
-for (i in trajectoryLengths %>% 
-     filter(Enzyme == "mEndoV") %>% 
-     extract2("New_Unique_trajectory_ID") %>% 
-     unique()) {
-  k = k + 1
-  if (k < 5) 
-    next
-  p <- CorrectedBlinking %>% 
-    filter(New_Unique_trajectory_ID == i) %>% 
-    ggplot(aes(x = Frame_number, y = corrected_X, 
-               color = factor(Unique_trajectory_ID))) + 
-    geom_line(alpha = 0.5) + 
-    geom_point() + 
-    ggtitle("mEnodV")+
-    xlab("Frame number")+
-    ylab("Position along DNA (nm)")
-  
-  print(p)
-  
-  if (k == 6) 
-    break
-}
-
-k = 0
-for (i in trajectoryLengths %>% 
-     filter(Enzyme == "hOgg1") %>% 
-     extract2("New_Unique_trajectory_ID") %>% 
-     unique()) {
-  k = k + 1
-  if (k == 1) 
-    next
-  p <- CorrectedBlinking %>% 
-    filter(New_Unique_trajectory_ID == i) %>% 
-    ggplot(aes(x = Frame_number, y = corrected_X, 
-               color = factor(Unique_trajectory_ID))) +
-    geom_line(alpha = 0.5) + 
-    geom_point() + 
-    ggtitle("hOGG1")+
-    xlab("Frame number")+
-    ylab("Position along DNA (nm)")
-  
-  print(p)
-  
-  if (k == 3) 
-    break
-}
-```
-
-
-## Binding lifetime 
-
-The binding life time is defined as duration of uninterrupted binding and scanning events. The binding lifetime of different proteins in different salt concentration is shown in Fig.15.  
-
-```{r binding lifetime,  message= FALSE, warning= FALSE, error= FALSE, fig.align= "center", fig.cap="Binding lifetime", out.width= '70%'}
 
 trajectoryLengths$Enzyme <-  factor(trajectoryLengths$Enzyme, 
                             levels=c('hOgg1','EndoV',
@@ -1525,58 +1462,8 @@ trajectoryLengths %>%
 ```
 
 
-## Step size distribution 
-
-In Fig.16 the distribution of displacements of the protein along DNA within frame intervals is shown. The vertical lines in the graph are 1,2 and 3 standard deviation. 
-
-
-```{r step size distribution, message= FALSE, warning= FALSE, error= FALSE, out.width= '70%', fig.align= "center", fig.cap="Step size distribution"}
-
-tmp <- CorrectedBlinking%>% 
-  group_by(Unique_trajectory_ID, Enzyme) %>% 
-  mutate(Step=lead(corrected_X, n=1)- corrected_X) %>% 
-  group_by(Enzyme) %>%
-  summarize(sigma1=sd(Step, na.rm=TRUE), 
-            sigma2=2*sd(Step, na.rm=TRUE), 
-            sigma3=3*sd(Step, na.rm=TRUE), 
-            lsigma1=-sd(Step, na.rm=TRUE), 
-            lsigma2=-2*sd(Step, na.rm=TRUE), 
-            lsigma3=-3*sd(Step, na.rm=TRUE)) %>% 
-  gather(sig, val, -Enzyme)
-
-CorrectedBlinking$Enzyme <-  factor(CorrectedBlinking$Enzyme, 
-                            levels=c('hOgg1','EndoV',
-                                     'mEndoV'))
-tmp$Enzyme <-  factor(tmp$Enzyme, 
-                            levels=c('hOgg1','EndoV',
-                                     'mEndoV'))
-
-
-labeloo3 <- c('EndoV'= "wt-EndoV" , 'hOgg1'= "hOGG1",
-              'mEndoV'= "wm-EndoV") 
-
-CorrectedBlinking%>% 
-  group_by(Unique_trajectory_ID, Enzyme) %>% 
-  mutate(Step=lead(corrected_X, n=1)- corrected_X) %>%
-  group_by(Enzyme) %>% 
-  ggplot(aes(x=Step, y=..count..))+ 
-  geom_histogram( binwidth = 10)+ 
-  facet_wrap(~Enzyme, scales = "free_y", ncol = 1, 
-             labeller = as_labeller(labeloo3) )+ 
-  coord_cartesian(xlim =c(-600,600)) + 
-  geom_vline(data= tmp, aes(xintercept = val))+
-  ggtitle("Step size distribution")+
-  xlab("Step size per exposure time (nm)")+
-  ylab("Counts")
-
-``` 
-
-
 
 # Instantaneous diffusion rate 
-
-Now we want to investigate whether we see two (or more) different distributions of the diffusion rate or not. But if we look at the average diffusion rate (as has been common in other studies) we do not see any non-singularity in the distribution of the diffusion rate. We need to see the diffusion rate in each moment of time in the trajectories.
-
 
 ## Local MSD function 
 
@@ -1682,7 +1569,7 @@ localMSDcomplete(1:20, 6)
 
 ## Instantaneous diffusion rate distribution 
 
-Using the Rccp function the Instantaneous diffusion rate is calculated and shown for different width of the moving window in Fig.17-19 
+Using the Rccp function the Instantaneous diffusion rate is calculated and shown for different width of the moving window in Fig.10-12. In these figure it is shown that modality of scanning is independent of the width of the moving window.  
 
 
 ```{r Instantaneous diffusion rate distribution,  message= FALSE, warning= FALSE, error= FALSE, fig.align= "center", fig.cap="Instantaneous diffusion rate distribution", fig.asp= 0.3}
@@ -1791,9 +1678,9 @@ localMSDs %>%
 
 
 ``` 
-Independent of the width of the moving window two peaks of the distribution are visible for hOGG1 and wt EndoV whereas for mutant EndoV there is only one peak. 
 
-Now we calculate the percentage of trajectories that pass the upper theoretical limit of diffusion rate (calculated in 9.3). 
+
+Now we calculate the percentage of trajectories that pass the upper theoretical limit of the diffusion rate for helical sliding(calculated in 9.3). 
 
 ```{r passing the speed limit, message= FALSE, warning= FALSE, error= FALSE, fig.align= "center"}
 
@@ -1823,9 +1710,11 @@ localMSDs %>%
 ```
 
 
-## Simulation of pure random walk
+## Simulation of single-mode random walks
 
-Before doing further analysis we want to simulate a random walk and analyse along with the proteins; this can help us understand the deviations from the normal distributions and consequently the mechanism of scanning better.      
+Here we want to simulate single-mode random walks with average diffusion rates equal to those of the proteins. The average diffusion rate for hOgg1, EndoV and mutant EndoV is calculated as $0.13 \mu m^2/s$, $0.65 \mu m^2/s$ and $0.70 \mu m^2/s$ with time interval of   $23.5ms$, $7.5ms$ and $7.5ms$ respectively.
+
+In the next step the instantaneous diffusion rate distribution of the proteins are compared with those of their corresponding single-mode simulated random walks. The result is shown in Fig.13. The histogram overlaid with red density plots are the instantaneous diffusion rate distribution of the proteins and the solid black lines are the corresponding simulated single mode random walks.
 
 ```{r average diffusion rate, message= FALSE, warning= FALSE, error= FALSE, fig.align= "center"}
 
@@ -1836,9 +1725,6 @@ localMSDs %>% filter(localMSD_15!=0, `Delta_X > 300` == "Yes", On_DNA)%>%
             sd.diffusion.rate = sd(localMSD_15, na.rm = T)) 
 
 ```
-
-
-The average diffusion rate for hOgg1, EndoV and mutant EndoV is calculated as $0.13 \mu m^2/s$, $0.65 \mu m^2/s$ and $0.70 \mu m^2/s$ with time interval of   $23.5ms$, $7.5ms$ and $7.5ms$ respectively. Now with this information we can simulate different pure random walks with average diffusion rate equal to that of corresponding proteins. The result is shown in Fig.20, the histogram overlaid with red density plots are the instantaneous diffusion rate distribution of the proteins and the solid black lines are the corresponding simulated single mode random walks. 
 
 
 ```{r Simulation of pure random walk, message= FALSE, warning= FALSE, error= FALSE, fig.align= "center", fig.asp=0.30, fig.cap= "Instantaneous diffusion rate of the proteins and corresponding simulated single-mode random walks"}
@@ -1984,13 +1870,11 @@ localMSDs %>%
 
 # Classification 
 
-For further investigation of the different diffusion modes we use different methods to classify the data. In this part we first classify the data using activation energy barrier and then verify this using Markov hidden states analysis. 
-
 ## Activation energy barrier classification 
 
-Assuming the scanning as a chemical reaction, the rate constant is $k=1/t=2D/<x^2>$ and from Arrhenius equation we have $k=Ae^{(-E_a/K_B T)}$. In the case of ideal sliding the $E_a$ is 0, therefore $A = K_i$; plugging these into Arrhenius equation and solving it for $E_a$, we have: $E_a = ln(k_i/k)k_BT$. Given the random walk is happening with the length of 1bp for each step, therefore $<x^2>$ is equal to $1bp^2$, therefore the ratio of $k_i/k$ will be equal to $D_i/D$. Thus for $E_a$ equation we have : $E_a = ln(D_i/D)k_BT$ where $D_i$ is the upper theoretical limit of diffusion for helical sliding. By setting D as instantaneous diffusion rates we can calculate $E_a$ for every step. 
+Assuming the scanning as a chemical reaction, the rate constant is $k=1/t=2D/<x^2>$ and from the Arrhenius equation we have $k=Ae^{(-E_a/K_B T)}$. In the case of ideal sliding the $E_a$ is 0, therefore $A = k_i$. Plugging these into Arrhenius equation and solving for $E_a$, we have: $E_a = ln(k_i/k)k_BT$. Given the random walk has a 1 nucleotide stepping length, $<x^2>$ is equal to $1bp^2$, therefore the ratio of $k_i/k$ will be equal to $D_i/D$. Thus we get : $E_a = ln(D_i/D)k_BT$ where $D_i$ is the upper theoretical limit of diffusion for helical sliding (calculated in section 9.3). By setting D as the instantaneous diffusion rate, we can calculate $E_a$ for every step. 
 
-We classify the steps based on the value of $E_a$ into three categories each of which are representative of a particular scanning mode: 
+We classify the steps of trajectories based on the value of  $E_a$ into three categories, each representative of a particular scanning mode: 
 
 $E_a < 0.5k_BT$ : hopping mode  
 
@@ -1998,7 +1882,7 @@ $0.5k_BT < E_a < 2k_BT$: helical sliding mode
 
 $E_a > 2k_BT$ : interrogation mode 
 
-The result of this classification is shown in Fig.21.
+The result of this classification is shown in Fig.14.
 
 
 ```{r energy barrier classification, message= FALSE, warning= FALSE, error= FALSE, fig.align= "center", fig.asp= 0.30, fig.cap= "Energy barrier classification" }
@@ -2040,8 +1924,7 @@ localMSDs1 %>%  ggplot(aes(x=localMSD_05)) +
 
 ## Hidden Markov model classification 
 
-To verify the existence of the three above-mentioned modes of scanning, we used an analytical tool based on a variational Bayesian treatment of hidden Markov models (HMM)$^4$ to classify segments of the trajectories into three states. Later we check the overlap of these three states with that of the energy barrier classification. 
-In the first step we need to transform the data to a version that is compatible with the MATLAB code of the HMM software (vbSPT). All trajectories are saved in separate text files and later they are read by MATLAB and concatenate as a cell array. 
+To verify the existence of the three above-mentioned modes of scanning, we used an analytical tool based on a variational Bayesian treatment of hidden Markov models (HMM)$^4$ to classify segments of the trajectories into three states. In the first step we need to transform the data to a version that is compatible with the MATLAB code of the vbSPT software for HMM classification. Using following scripts all trajectories are saved in separate text files using R and later they are read by MATLAB and concatenate as a cell array. 
 
 ```{r tomarkov, eval=FALSE, message= FALSE, warning= FALSE, error= FALSE}
 ## hOgg1
@@ -2126,10 +2009,6 @@ for(i in traj.id){
 
 
 
-The next step is performed in MATLAB. By navigating to the same folder containing the text files and running this code for each proteins the cell array files are constructed. 
-
-
-
 ```{matlab making the cell array, eval=FALSE, message= FALSE, warning= FALSE, error= FALSE }
 my_files = dir('*.txt');
 for k = 1:length(my_files)
@@ -2143,7 +2022,7 @@ save hOgg1_data.mat finalTraj
 ```
 
 
-The codes that are used in MATLAB for 3-state classification of the trajectories of the 3 proteins are as following. To perform the classification with higher number of states the variable related to Maximum number of states changes. 
+The codes that are used in MATLAB for 3-state classification of the trajectories of the 3 proteins are as following. In order to perform the classification with higher number of states, the variable maxHidden must be increased relatively. 
 
 
 ```{matlab hOgg1, eval=FALSE, message= FALSE, warning= FALSE, error= FALSE}
@@ -2426,18 +2305,9 @@ prior_tDstrength = 2*prior_tD/timestep;
 
 ```
 
-The vbSPT software failed to converge on a reasonable number of states, and always selected more than three states to be the best fit for all proteins (8 states for wm- and wt-EndoV, 6 states for hOGG1). According to the publication related the vbSPT software$^4$ the states with forbidden transitions, can acquired transition probabilities up to 0.012, therefore we assume any transition below this value as insignificant and replaced by 0. 
-
-
-The transition probability matrices for all classification models including 3 or more number of states for all proteins are presented here. As shown here the transition probability matrices of the 4-state classification for wt- and wm-EndoV are nearly reducible and for all other remainder classification models with number of states more than 3 the transition probability matrices are reducible Markov chains. This can be a sign of heterogeneity in our data sets, which might explain why the sbSPT HM modelling predicts more than 3 states for our data sets. In contrast, all the 3-state models have irreducible transition matrices. 
+The vbSPT software selected more than three states to be the best fit for all proteins (8 states for wm- and wt-EndoV, 6 states for hOGG1). According to the publication describing the vbSPT software$^4$ the states with forbidden transitions, can acquire transition probabilities up to 0.012, therefore we assume any transition below this value as insignificant and assign 0 value for the transition probability. The transition probability matrices for all classification models including 3 or more number of states for all proteins are presented here. Using the functions of the "markovchain" package in R we checked whether these matrices are reducible or not.  
 
 For wt-EndoV: 
-
-3-state: irreducible
-
-4-state: nearly reducible 
-
-5-,6-,7-, 8-states: reducible 
 
 ```{r Hetro-EndoV , message= FALSE, warning= FALSE, error= FALSE, out.width= '80%', fig.align= "center"}
 
@@ -2514,11 +2384,6 @@ summary(transition.matrix)
 
 For wm-EndoV: 
 
-3-state: irreducible
-
-4-state: nearly reducible 
-
-5-,6-,7-, 8-states: reducible 
 
 ```{r Hetro-mEndoV , message= FALSE, warning= FALSE, error= FALSE, out.width= '80%', fig.align= "center"}
 
@@ -2594,10 +2459,6 @@ summary(transition.matrix)
 ```
 For hOGG1: 
 
-3-state: irreducible
-
-4-,5-,6-state: reducible 
-
 ```{r Hetro-hOGG1 , message= FALSE, warning= FALSE, error= FALSE, out.width= '80%', fig.align= "center"}
 
 hOGG1TPMs <- transitions[[3]]
@@ -2647,7 +2508,7 @@ summary(transition.matrix)
 
 ```
 
-Next, the output files for 3-states classifications are transferred into R, and the information of the new classification is added to the rest of data. Here we first look at the distribution of those states in the instantaneous diffusion plot (Fig. 22).
+While most of the classification models with more than 3 states have reducible transition matrices, all the 3-state models have irreducible transition matrices. Next, the output files for 3-states classifications are transferred into R, and the information of the new classification is added to the rest of data. Here we first look at the distribution of those states in the instantaneous diffusion plot (Fig. 15).
 
 ``` {r fromMarkov , message= FALSE, warning= FALSE, error= FALSE, fig.align= "center", fig.asp= 0.30, fig.cap= "Hidden Markov model classification"}
 ## hOgg1
@@ -2783,7 +2644,8 @@ segmented.localMSDs %>%
 
 ```
 
-To investigate the existence of non-Markovian transitions we checked the dynamic of mode switching for all conditions of three consecutive transitions for all proteins. There are 12 alternative sequences of three consecutive transitions for each protein. We calculate the relative probabilities of the final transition given the same initial transition. The result of this analysis is shown in Fig. 23; the x axis shows the initial transition and the y axis is the relative probability of transition to either of two possible states given specific initial transitions. We can clearly see the effect of memory in transition for the sequences of transition in which the middle state is two. This manifests the non-Markovain transition for these sequences of transitions and can be an explanation for why vbSPT overestimates the number of states. 
+To investigate the existence of non-Markovian transitions we checked the dynamic of mode switching for all conditions of three consecutive transitions for all proteins. There are 12 alternative sequences of three consecutive transitions for each protein. We calculate the relative probabilities of the final transition given the same initial transition. The result of this analysis is shown in Fig. 16; the x axis shows the initial transition and the y axis is the relative probability of transition to either of two possible states given specific initial transitions. 
+
 
 ```{r memory , message= FALSE, warning= FALSE, error= FALSE, out.width= '80%', fig.align= "center", fig.cap= "The effect of memory in sequence of transitions"}
 
@@ -2853,10 +2715,6 @@ temp %>% arrange(Enzyme, transition.seq) %>%
 
 ```
 
-
-
-
-
 In the next step, we want to check the consistency and overlap of the scanning modes from energy barrier-based classification and HMM-based classification. This is done first by looking into the confusion matrix that shows around 70% overlap between these two models. 
 
 ```{r mothodsOverlap , message= FALSE, warning= FALSE, error= FALSE, out.width= '80%', fig.align= "center"}
@@ -2884,7 +2742,7 @@ confusionMatrix(as.factor(localMSDs3$energy.barrier),
 
 
 
-The agreement of the two models is further investigated by comparison of state occupancies and diffusion rates of the two models. In the energy barrier model, the frames are classified based on the value of the observed instantaneous diffusion rate. Since we use a moving window of 5 frames to calculate the instantaneous diffusion rate, the last four frames of each trajectory are not assigned any value for the instantaneous diffusion rate, and thus excluded from the energy barrier classification. Because of this, we excluded the same four frames of each trajectory after the HMM classification, and recalculated the diffusion rate of each state by averaging over the instantaneous diffusion rate of all remaining frames. The occupancy of each state was also recalculated as the proportion of time spent in each state. The recalculated values are close to the original values reported by the HMM without frame correction (Fig.24)
+The agreement of the two models is further investigated by comparison of state occupancies and diffusion rates of the two models. In the energy barrier model, the frames are classified based on the value of the observed instantaneous diffusion rate. Since we use a moving window of 5 frames to calculate the instantaneous diffusion rate, the last four frames of each trajectory are not assigned any value for the instantaneous diffusion rate, and thus excluded from the energy barrier classification. Because of this, we excluded the same four frames of each trajectory after the HMM classification, and recalculated the diffusion rate of each state by averaging over the instantaneous diffusion rate of all remaining frames. The occupancy of each state was also recalculated as the proportion of time spent in each state. The recalculated values are close to the original values reported by the HMM without frame correction (Fig.17)
 
 ```{r originalMarkovOutputs , message= FALSE, warning= FALSE, error= FALSE, out.width= '95%', fig.align= "center", fig.cap= "Hidden Markov model vs Energy barrier classification", fig.asp=0.5}
 
@@ -3023,7 +2881,7 @@ combined.data %>% ggplot() +
 
 # Diffusion rate analysis of the classified data 
 
-Here we show the salt dependence of average diffusion rate of the diffusion modes based on both models of classifications (Fig. 25 and 26). The horizontal lines in the plots show the upper theoretical limit of diffusion rate. 
+Here we show the salt dependence of average diffusion rate of the diffusion modes based on both models of classifications (Fig. 18 and 19). The horizontal lines in the plots show the upper theoretical limit of diffusion rate. 
 
 ```{r Salt dependency of the diffusion rate ,  message= FALSE, warning= FALSE, error= FALSE, out.width= '60%', fig.align= "center", fig.cap= "Salt dependenc of average diffusion rate"}
 
@@ -3076,8 +2934,6 @@ segmented.localMSDs %>%
 
 
 ``` 
-
-As it is visible the fast mode of EndoV and mutant shows salt dependence and with a good approximation this is consistence for both classification models. 
 
 
 
@@ -3287,7 +3143,7 @@ segmented.localMSDs %>%
 
 Fig. 1c 
 
-```{r Fig.1c , message= FALSE, error= FALSE, eval=FALSE, warning= FALSE, out.width= '70%'}
+```{r Fig.1c , message= FALSE, error= FALSE, eval=FALSE, warning= FALSE, out.width= '70%', eval=FALSE}
 
 # Fig.1c --- Tracking output 
 
@@ -3330,7 +3186,7 @@ LongDet %>%
 
 
 ```
-```{r fig1c, echo=FALSE, out.width = '60%', fig.align= "center"}
+```{r fig1c, echo=FALSE, out.width = '60%', fig.align= "center", eval=FALSE}
 knitr::include_graphics("Processed/Pics/Fig.1c3.png")
 ```
 
@@ -3340,7 +3196,7 @@ knitr::include_graphics("Processed/Pics/Fig.1c3.png")
 Fig. 2a
 
 
-```{r Fig.2a , message= FALSE, error= FALSE, warning= FALSE, fig.asp=0.26, fig.align="center"}
+```{r Fig.2a , message= FALSE, error= FALSE, warning= FALSE, fig.asp=0.26, fig.align="center", eval=FALSE}
 
 # Fig.1a --- Instantaneous diffusion rate  
 segmented.localMSDs <-  readRDS("Processed/segmented_localMSD.rds")
@@ -3414,7 +3270,7 @@ segmented.localMSDs %>%
 
 Fig 1.a (insets)
 
-```{r Fig.2aInsets , message= FALSE, error= FALSE, warning= FALSE, error= FALSE, fig.align= "center", out.width='30%'}
+```{r Fig.2aInsets , message= FALSE, error= FALSE, warning= FALSE, error= FALSE, fig.align= "center", out.width='30%', eval=FALSE}
 
 # Fig.1a, insets --- trajectories )
 
@@ -3504,7 +3360,7 @@ trajectories %>%
 Fig. 2b 
 
 
-```{r Fig.2b , message= FALSE, error= FALSE, warning= FALSE, fig.asp=0.3, fig.align= "center"}
+```{r Fig.2b , message= FALSE, error= FALSE, warning= FALSE, fig.asp=0.3, fig.align= "center", eval=FALSE}
 
 # Fig.2b --- classification 
 diffusion.occupancy <- readRDS("Processed/diffusion_occupancy.rds")
@@ -3572,7 +3428,7 @@ diffusion.occupancy %>% ggplot() +
 
 ## Figure 3 
 
-```{r Fig.3a , message= FALSE, error= FALSE, warning= FALSE, fig.align="center", fig.asp= 0.8, out.width='60%' }
+```{r Fig.3a , message= FALSE, error= FALSE, warning= FALSE, fig.align="center", fig.asp= 0.8, out.width='60%', eval=FALSE }
 # Fi.3a --- salt dependent of diffusion rate 
 
 segmented.localMSDs <- readRDS("Processed/segmented_localMSD.rds")
