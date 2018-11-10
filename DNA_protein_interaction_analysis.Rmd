@@ -1,15 +1,15 @@
 ---
-title: "Breaking the speed limit: multimode fast scanning of DNA by Endonuclease V \n (Supplementary information)"
+title: "Breaking the speed limit with multimode fast scanning of DNA by Endonuclease V \n (Supplementary code)"
 author: "Arash Ahmadi et al."
 output:
+  html_document:
+    number_sections: yes
+    toc: yes
   pdf_document:
     number_sections: yes
     fig_caption: yes        
     includes:  
       in_header: fix_figure_position.tex
-    toc: yes
-  html_document:
-    number_sections: yes
     toc: yes
 ---
 # Data acquisition
@@ -3035,7 +3035,7 @@ KB = 1.38*1e-23 # J/K: N.m/K
 T = 296 #K 
 eta = 1.002*1e-3 # Ns/m2 
 BP= 0.34 *1e-9 * 0.95 
-# considering the fact that our DNA is stretched to 0.9 % of its contour length 
+# considering the fact that our DNA is stretched to 0.95 % of its contour length 
 
 
 ## hOGG1 
@@ -3482,7 +3482,7 @@ segmented.localMSDs %>% ungroup() %>% filter(localMSD_05!=0,
              labeller = as_labeller(labeloo3))+ 
   theme_white6+ 
   xlab("NaCl Concentration (mM)")+
-  ylab(expression(Average~diffusion~rate~(mu*m^2/s)))+ 
+  ylab(expression(Average~diffusion~rate~(mu*m^2~s^-1)))+ 
   scale_color_discrete(name = "Energy barrier", 
                        labels= c(expression(E[a]>~2*~k[B]*T),
                                 expression(0.5*~k[B]*T<~E[a]<~2*~k[B]*T),
@@ -3490,9 +3490,9 @@ segmented.localMSDs %>% ungroup() %>% filter(localMSD_05!=0,
   annotation_logticks(side= "b",short = unit(0,"mm"),
                       mid = unit(0.6,"mm"), long = unit(1,"mm"))
 
-# ggsave(filename = "Fig.3a.svg" ,path= "Figures/" , 
-#        width=8.9, height= 8, units= "cm", dpi=300) 
-# 
+#  ggsave(filename = "Fig.3a.svg" ,path= "Figures/" , 
+#         width=8.8, height= 8, units= "cm", dpi=300) 
+#  
 # ggsave(filename = "Fig.3a.png" ,path= "Figures/" , 
 #        width=8.9, height= 8, units= "cm", dpi=300) 
 # 
@@ -3503,6 +3503,345 @@ segmented.localMSDs %>% ungroup() %>% filter(localMSD_05!=0,
 ```
 
 
+## Supplementary figure 1 
+
+```{r supp.fig.1 , message= FALSE, error= FALSE, warning= FALSE, fig.asp=0.26, fig.align="center", eval=FALSE}
+
+# Fig.1a --- Instantaneous diffusion rate  
+segmented.localMSDs <-  readRDS("Processed/segmented_localMSD.rds")
+
+segmented.localMSDs$Enzyme <-  factor(segmented.localMSDs$Enzyme, 
+                            levels=c('hOgg1','EndoV',
+                                     'mEndoV'))
+
+labeloo3 <- c('EndoV'= "wt-EndoV" , 'hOgg1'= "hOGG1",
+              'mEndoV'= "wm-EndoV")
+
+theme_white2 <- theme(panel.background = element_blank(),
+                      legend.key = element_blank(),
+                      legend.background = element_blank(),
+                      strip.background = element_blank(),
+                      plot.background = element_blank(),
+                      panel.grid = element_blank(),
+                      axis.line = element_line(color = "black"),
+                      axis.ticks = element_line(color = "black"),
+                      strip.text = element_text(size = 6, color = "black"),
+                      axis.title.y = element_text(size = 6,color = "black"),
+                      axis.title.x = element_text(size = 6,color = "black"),
+                      axis.text = element_text(color = "black", size= 6),
+                      legend.position="none", 
+                      legend.direction = "horizontal",
+                      legend.text = element_text(size=6), 
+                      legend.title = element_text(size=6), 
+                      panel.spacing = unit(1, "mm"), 
+                      plot.title = element_text(size = 8, color = "black"))
+
+## plot
+
+segmented.localMSDs %>%
+  filter(localMSD_05!=0, `Delta_X > 300`== "Yes", On_DNA) %>%
+  ggplot(aes(x=localMSD_05)) + 
+  facet_wrap(~Enzyme, ncol = 3, labeller = as_labeller(labeloo3)) + 
+  geom_histogram(bins=100, position = "stack",
+                 aes(y=20*(..count..)/tapply(..count..,..PANEL..,sum)[..PANEL..])) +
+  geom_density()+
+   scale_x_log10(breaks= c(0.01,0.1,1,10))+
+  ylab("Density")+ 
+  xlab( expression(Instantaneous~diffusion~rate~(mu*m^2~s^-1))) +
+  scale_y_continuous(breaks = c(0.5, 1))+
+  annotation_logticks(side= "b",
+                      short = unit(0.3,"mm"), 
+                      mid = unit(0.6,"mm"), 
+                      long = unit(1,"mm"))+ 
+  scale_fill_discrete(name = "Diffusion mode")+ 
+  theme_white2+ 
+  ggtitle("Moving window: 5 frames")
+
+
+# ggsave(filename = "Fig.supp1a.png" ,path= "Figures/" , 
+#         width=18, height= 4.6, units= "cm", dpi=300)
+
+  
+
+segmented.localMSDs %>%
+  filter(localMSD_07!=0, `Delta_X > 300`== "Yes", On_DNA) %>%
+  ggplot(aes(x=localMSD_07)) + 
+  facet_wrap(~Enzyme, ncol = 3, labeller = as_labeller(labeloo3)) + 
+  geom_histogram(bins=100, position = "stack",
+                 aes(y=21*(..count..)/tapply(..count..,..PANEL..,sum)[..PANEL..])) +
+  geom_density()+
+   scale_x_log10(breaks= c(0.01,0.1,1,10))+
+  ylab("Density")+ 
+  xlab( expression(Instantaneous~diffusion~rate~(mu*m^2~s^-1))) +
+  scale_y_continuous(breaks = c(0.5, 1))+
+  annotation_logticks(side= "b",
+                      short = unit(0.3,"mm"), 
+                      mid = unit(0.6,"mm"), 
+                      long = unit(1,"mm"))+ 
+  scale_fill_discrete(name = "Diffusion mode")+ 
+  theme_white2+ 
+    ggtitle("Moving window: 7 frames")
+
+
+# ggsave(filename = "Fig.supp1b.png" ,path= "Figures/" , 
+#         width=18, height= 4.6, units= "cm", dpi=300)
+
+  
+segmented.localMSDs %>%
+  filter(localMSD_10!=0, `Delta_X > 300`== "Yes", On_DNA) %>%
+  ggplot(aes(x=localMSD_10)) + 
+  facet_wrap(~Enzyme, ncol = 3, labeller = as_labeller(labeloo3)) + 
+  geom_histogram(bins=100, position = "stack",
+                 aes(y=21*(..count..)/tapply(..count..,..PANEL..,sum)[..PANEL..])) +
+  geom_density()+
+   scale_x_log10(breaks= c(0.01,0.1,1,10))+
+  ylab("Density")+ 
+  xlab( expression(Instantaneous~diffusion~rate~(mu*m^2~s^-1))) +
+  scale_y_continuous(breaks = c(0.5, 1))+
+  annotation_logticks(side= "b",
+                      short = unit(0.3,"mm"), 
+                      mid = unit(0.6,"mm"), 
+                      long = unit(1,"mm"))+ 
+  scale_fill_discrete(name = "Diffusion mode")+ 
+  theme_white2+ 
+  ggtitle("Moving window: 10 frames")
+
+
+# ggsave(filename = "Fig.supp1c.png" ,path= "Figures/" , 
+#         width=18, height= 4.6, units= "cm", dpi=300)
+# 
+
+
+```
+
+## Supplementary figure 2 
+
+```{r supp.fig.2 , message= FALSE, error= FALSE, warning= FALSE, fig.asp=0.26, fig.align="center", eval=FALSE}
+
+
+markov.data <- readRDS("Processed/markov_data.RDS")
+
+markov.data$energy.barrier <- 
+  factor(markov.data$energy.barrier,
+         levels = c('Ea > 2KbT',
+                    '0.5KbT < Ea < 2KbT',
+                    'Ea < 0.5KbT'))
+
+## Recalculation of Diffusion rates and occupancies of the Markov states
+
+markov.result <- segmented.localMSDs %>% 
+  filter(localMSD_05!=0, !is.na(Markov.state)) %>% 
+  group_by(Enzyme, Markov.state) %>% 
+  summarise(diffusion.rate = mean(localMSD_05), 
+            diffusion.rate.error = sd(localMSD_05)/sqrt(n()),
+            occupancy = n()) %>% 
+  group_by(Enzyme) %>% 
+  mutate(l= sum(occupancy)) %>% 
+  mutate(occupancy = occupancy/l) %>% 
+  select(-l) %>%
+  mutate(Segmentation = "Markov states") %>% 
+  mutate(upper.limit = ifelse(Enzyme == "hOgg1", 0.89, 1.3)) %>% 
+  mutate(energy.barrier =
+           ifelse(log(upper.limit/(diffusion.rate)) <= 0.5 , 
+                  "Ea < 0.5KbT", 
+                  ifelse(log(upper.limit/(diffusion.rate)) > 0.5 &
+                           log(upper.limit/(diffusion.rate)) <= 2, 
+                         "0.5KbT < Ea < 2KbT", "Ea > 2KbT"))) %>% 
+  select(-upper.limit)
+
+
+energy.result <- segmented.localMSDs %>% 
+  filter(localMSD_05!=0, !is.na(Markov.state)) %>% 
+  group_by(Enzyme, energy.barrier) %>% 
+  summarise(diffusion.rate = mean(localMSD_05), 
+            diffusion.rate.error = sd(localMSD_05)/sqrt(n()), 
+                      occupancy = n()) %>% 
+  group_by(Enzyme) %>% 
+  mutate(l= sum(occupancy)) %>% 
+  mutate(occupancy = occupancy/l) %>% select(-l) %>%
+  mutate(Segmentation = "Energy barrier")
+
+diffusion.occupancy <- bind_rows( energy.result, markov.result)
+
+
+
+library(plyr)
+
+diffusion.occupancy$Enzyme <-  
+  revalue(diffusion.occupancy$Enzyme, c("hOgg1" = "hOGG1", "EndoV" = "wt-EndoV", 
+                                        "mEndoV" = "wm-EndoV"))
+
+diffusion.occupancy$Segmentation <-  
+  revalue(diffusion.occupancy$Segmentation,
+          c("Markov states" = "Recalculated values\n  for Markov States", 
+            "Energy barrier" = "Values for Energy\n  barrier states"))
+detach("package:plyr", unload=TRUE)
+
+combined.data <- bind_rows(diffusion.occupancy,
+               markov.data %>% 
+                 filter(num.of.states == 3) %>% 
+                 select(-num.of.states, - upper.limit) %>% 
+                 mutate(Segmentation = "Original values\n  for Markov States"))
+combined.data$energy.barrier <- 
+  factor(combined.data$energy.barrier,
+         levels = c('Ea > 2KbT',
+                    '0.5KbT < Ea < 2KbT',
+                    'Ea < 0.5KbT'))
+combined.data %<>% arrange( Segmentation,Enzyme,  energy.barrier)
+
+combined.data$Enzyme <-  factor(combined.data$Enzyme, 
+                                 levels=c('hOGG1','wt-EndoV',
+                                       'wm-EndoV'))
+
+combined.data$Segmentation <-  factor(combined.data$Segmentation, 
+                                      levels=c('Values for Energy\n  barrier states',
+                                         'Recalculated values\n  for Markov States', 
+                                         'Original values\n  for Markov States'))
+                               
+
+theme_white4 <- theme(panel.background = element_blank(),
+                      legend.key = element_blank(),
+                      legend.background = element_blank(),
+                      strip.background = element_blank(),
+                      plot.background = element_blank(),
+                      panel.grid.major = element_line(color = "gray"),
+                      axis.line = element_line(color = "black"),
+                      axis.ticks.y = element_line(color = "black"),
+                      axis.ticks.x = element_blank(),
+                      strip.text = element_text (size=6, color= "black"),
+                      axis.title.y = element_text(size = 6,
+                                                  color = "black"),
+                      axis.title.x = element_text(size = 6,
+                                                  color = "black"),
+                      axis.text.x = element_text (size=6, color= "black"),
+                      axis.text.y = element_text (size=6, color= "black"),
+                      legend.position="top",
+                      legend.direction = "vertical", 
+                      legend.text = element_text(size=6), 
+                      legend.title = element_text(size=6),
+                      panel.spacing = unit(10, "mm"))
+
+
+combined.data %>% ggplot() + 
+  geom_point(aes(x = diffusion.rate,
+                 y = occupancy, 
+                 shape= Segmentation, 
+                 color= energy.barrier), size =3, alpha = 0.8)+ 
+  facet_wrap(~Enzyme,ncol=3, scales = "free_y")+ 
+  theme_white4+
+  ylab("Activation energy barrier range")+ 
+  xlab(expression(Average~diffusion~rate~(mu*m^2/s))) +
+  scale_shape_discrete(name = "Classification/diffusion\n calculatioin method")+ 
+  facet_wrap(~Enzyme,ncol=3, scales = "free_y")+ 
+  theme_white4+  scale_x_log10(breaks= c(0.01,0.1,1,10))+
+  ylab("Mode occupancy")+ 
+  xlab(expression(Average~diffusion~rate~(mu*m^2/s))) +
+  annotation_logticks(side= "b",
+                      short = unit(0.3,"mm"), 
+                      mid = unit(0.6,"mm"), 
+                      long = unit(1,"mm"))+ 
+  scale_color_discrete(name = "Energy barrier", 
+                       labels= c(expression(E[a]>~2*~k[B]*T),
+                                 expression(0.5*~k[B]*T<~E[a]<~2*~k[B]*T),
+                                 expression(E[a]<~0.5*~k[B]*T)))+ 
+  scale_y_continuous(limits=c(0,0.8), breaks = c(0.25,0.5,0.75))
+
+# ggsave(filename = "Fig.supp2.png" ,path= "Figures/" , 
+#         width=18, height= 7.5, units= "cm", dpi=300)
+
+
+
+
+```
+
+
+## Supplementary figure 3 
+
+```{r supp.fig.3 , message= FALSE, error= FALSE, warning= FALSE, fig.asp=0.26, fig.align="center", eval=FALSE}
+
+temp <- segmented.localMSDs %>%  
+  arrange(New_Unique_trajectory_ID, Frame_number) %>% 
+  filter(!is.na(Markov.state)) %>% 
+  ungroup() %>% 
+  mutate(Markov.state0 = lag(Markov.state, n=1)) %>% 
+  group_by(New_Unique_trajectory_ID) %>%
+  mutate(state.change = Markov.state- lag(Markov.state, n= 1)) %>% 
+  mutate(state.change = ifelse(is.na(state.change), 0, state.change)) %>% 
+  mutate(midd1 = abs(sign(state.change))) %>% 
+  mutate(transition = ifelse(midd1==1, Markov.state+ Markov.state0*10,0)) %>% 
+  filter(transition!=0) %>% 
+  mutate(transition0 = lag(transition, n=1)) %>%
+  filter(!is.na(transition0)) %>% 
+  ungroup() %>% 
+  group_by(Enzyme, transition0, transition) %>% 
+  summarise( n = n()) %>% 
+  group_by(Enzyme, transition0) %>% 
+  mutate(total = sum(n), probability = n/total) %>% 
+  mutate(transition.seq = round(transition0/10)*100 + transition) %>% 
+  ungroup() %>% 
+  mutate(occurance.rate = n) %>% 
+  mutate(initial = round(transition0/10), 
+         middle = round(transition/10), 
+         final =  transition%%10)
+
+
+
+temp$transition.seq <- factor(temp$transition.seq, 
+                              levels = c("121", "123", "321", "323", 
+                                         "212", "213", "312", "313", 
+                                         "131", "132", "231", "232"))
+temp$transition0 <- factor(temp$transition0, 
+                              levels = c("12", "32", "21", "31", "13", "23"))
+
+library(plyr)
+
+temp$transition0 <- revalue(temp$transition0, 
+                           c("12"= "1>2", "32"= "3>2", "21"= "2>1", 
+                             "31"= "3>1", "13"= "1>3", "23"= "2>3"))
+
+temp$Enzyme <-  
+  revalue(temp$Enzyme, c("hOgg1" = "hOGG1", "EndoV" = "wt-EndoV", 
+                                        "mEndoV" = "wm-EndoV"))
+
+detach("package:plyr", unload=TRUE)
+
+
+theme_supp <- theme(  axis.line =  element_line(color = "black"),
+                      axis.ticks = element_line(color = "black"),
+                      strip.text = element_text(size = 6, color = "black"),
+                      axis.title.y = element_text(size = 6,color = "black"),
+                      axis.title.x = element_text(size = 6,color = "black"),
+                      axis.text = element_text(color = "black", size= 6),
+                      legend.position="right", 
+                      legend.direction = "vertical",
+                      legend.text = element_text(size=6), 
+                      legend.title = element_text(size=6), 
+                      panel.spacing = unit(1, "mm"), 
+                      plot.title = element_text(size = 8, color = "black"))
+
+temp %>% arrange(Enzyme, transition.seq) %>% 
+   ggplot(aes(x =as.factor(transition0), y = probability, 
+              size = occurance.rate, color = as.factor(middle)))+
+  geom_point(shape =17) + 
+  geom_text(aes(label=final),hjust=0.5, vjust=-1.5, size=3)+ 
+  facet_wrap(~Enzyme) + 
+  xlab("Initail transition") + 
+  ylab("Relative probability of second transition\n given the same initail transition")+ 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) + 
+  scale_y_continuous(limits = c(0,1.05))+ 
+  scale_size_continuous(range = c(0.5, 5), breaks = c(50,100,200,300), 
+                        name = "Occurence rate")+ 
+  scale_color_discrete(name = "Middle state")+ 
+  theme_supp
+# 
+# ggsave(filename = "Fig.supp3.png" ,path= "Figures/" , 
+#         width=18, height= 10, units= "cm", dpi=300)
+# 
+# 
+
+
+
+```
 
 # References 
 
