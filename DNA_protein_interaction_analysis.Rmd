@@ -3847,11 +3847,11 @@ temp %>% arrange(Enzyme, transition.seq) %>%
 
 1.	Schindelin, J. et al. Fiji: An open-source platform for biological-image analysis. Nature Methods 9, 676-682 (2012).
 
-2.	Ovesný, M., Krízek, P., Borkovec, J., Svindrych, Z. & Hagen, G. M. ThunderSTORM: A comprehensive ImageJ plug-in for PALM and STORM data analysis and super-resolution imaging. Bioinformatics 30, 2389-2390 (2014).
+2.	Ovesn&yacute;, M., K&#345;&#237;&#382;ek, P., Borkovec, J., Svindrych, Z. & Hagen, G. M. ThunderSTORM: A comprehensive ImageJ plug-in for PALM and STORM data analysis and super-resolution imaging. Bioinformatics 30, 2389-2390 (2014).
 
 3.	Tinevez, J. Y. et al. TrackMate: An open and extensible platform for single-particle tracking. Methods 115, 80-90 (2017).
 
-4.  Persson, F., Lindén, M., Unoson, C. & Elf, J. Extracting intracellular diffusive states and transition rates from single-molecule tracking data. Nat. Methods 10, 265-9 (2013).
+4.  Persson, F., Lind&eacute;n, M., Unoson, C. & Elf, J. Extracting intracellular diffusive states and transition rates from single-molecule tracking data. Nat. Methods 10, 265-9 (2013).
 
 5.  Bagchi, B., Blainey, P. C. & Sunney Xie, X. Diffusion constant of a nonspecifically bound protein undergoing curvilinear motion along DNA. J. Phys. Chem. B 112, 6282-6284 (2008).
 
